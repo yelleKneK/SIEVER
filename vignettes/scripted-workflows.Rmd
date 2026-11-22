@@ -1,0 +1,428 @@
+---
+title: "Scripted Analyses and a Reproducible Session"
+author: "Ken Kelley"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Scripted Analyses and a Reproducible Session}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(SIEVER)
+set.seed(1)
+# R CMD check rebuilds every vignette under a time limit. The bootstrap in
+# this article is run when the vignette is built, so its result is printed
+# below, and it is not run again by the check.
+during_check <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))
+```
+
+## A Measurement Model From R
+
+The interface and public functions use the same analysis services. A script
+states the data, item definitions, estimator, and missing-data treatment. It
+retains the returned status before interpreting coefficients.
+
+```{r model}
+data <- lavaan::HolzingerSwineford1939[, paste0("x", 1:9)]
+meta <- data.frame(item = names(data), label = names(data),
+  construct = rep(c("Visual", "Textual", "Speed"), each = 3L),
+  facet = NA_character_, type = "continuous", status = "active",
+  reverse = FALSE, stringsAsFactors = FALSE)
+spec <- sieve_cfa_spec(meta, estimator = "mlr")
+result <- sieve_run_model(spec, data)
+result$status$code
+lavaan::parameterEstimates(result$fit, ci = TRUE)[1:3, c("lhs", "op", "rhs", "est", "ci.lower", "ci.upper")]
+```
+
+Factor variances are fixed to one, so all loadings are free. This script
+chooses MLR (robust maximum likelihood, for markedly non-normal items), which
+uses full information maximum likelihood for missing responses; ML with
+FIML and ML on the complete cases are the other continuous choices of the
+same `estimator` argument. Under the default `estimator = "auto"`,
+continuous items get ML with FIML (DMAR's default: the same estimates as
+MLR, with normal-theory standard errors and test statistic), and ordered
+items get thresholds and categorical estimation (WLSMV on polychoric
+correlations with listwise deletion), so changing an item's type changes
+the statistical specification rather than only a display label; a named
+estimator such as `"mlr"` treats every item as continuous whatever the
+types say.
+
+## Reusing a Fit Through a Session Store
+
+The application estimates the correlated-factors measurement model once
+per session: a fit store, `sieve_fit_store()`, keys each fit of that model
+by its exact identity
+(`sieve_fit_identity()`: the model syntax, the values of the modeled
+columns and the respondent rows, the estimator, the missing data
+treatment, the identification, the sampling design and the engine
+versions), and the CFA, Items and Validity pages, the measurement model
+behind the Reliability page's factor scores, and the assistant reuse an
+identical fit instead of fitting it again. The store holds those fits
+alone: the exploratory, item response, structural, bifactor, invariance
+and Optimizer models are fit where they are requested, and the methods
+draft fits its own CFA. In a script, `sieve_fit_cfa()` given a store keys
+its fits the same way. Two fits are never equated by
+approximation; another estimator, another row set or a changed value of a
+modeled column is another identity.
+
+```{r fit-store}
+store <- sieve_fit_store()
+first <- sieve_fit_cfa(data, meta, store = store)
+again <- sieve_fit_cfa(data, meta, store = store)
+identical(first, again)
+length(store$entries)
+other <- sieve_fit_cfa(data, meta, store = store, estimator = "ml")
+length(store$entries)
+
+id <- sieve_fit_identity(sieve_cfa_spec(meta, reserved = names(data)), data)
+changed <- data
+changed$x1[1] <- changed$x1[1] + 1
+identical(id, sieve_fit_identity(sieve_cfa_spec(meta, reserved = names(data)), changed))
+```
+
+In the application the store is emptied whenever data are loaded and is
+never written into a project; a reused fit enters no measured rate and the
+session script records which page fit it and when.
+
+## Reliability and Uncertainty
+
+The Reliability tab's default is Robust omega (observed denominator): the
+squared sum of the one-factor loadings over the variance of the
+unit-weighted composite, estimated from the unrestricted covariance matrix
+(Kelley & Pornprasertmanit, 2016, where it is introduced as hierarchical
+omega). Its interval is a percentile bootstrap for continuous items and a
+BCa bootstrap for ordered or binary items, 10000 replications by default,
+run on request. `sieve_reliability_spec()` resolves the request; with
+`run_bootstrap = FALSE` the point estimate is computed and the resampling
+is left pending, which is what the tab shows before Run the bootstrap is
+pressed. Omega (model-implied denominator) with DMAR's default interval
+(the MLR (sandwich) standard error, its limits formed on the logit scale) is returned beside it
+(the `model_` columns). The request's defaults are DMAR's: `missing =
+"fiml"` and, through `ci_method = "recommended"`, DMAR's default interval
+for each coefficient.
+
+```{r reliability}
+items <- paste0("x", 1:3)
+types <- stats::setNames(rep("continuous", 3L), items)
+reliability_spec <- sieve_reliability_spec(items, types = types, construct = "Visual",
+  missing = "fiml", run_bootstrap = FALSE)
+reliability_spec$coefficient
+reliability_spec$uncertainty$status
+reliability <- sieve_reliability_construct(data, reliability_spec, alpha = FALSE)
+shown <- c("construct", "coefficient", "omega", "ci_lower", "ci_upper", "interval",
+  "model_omega", "model_lower", "model_upper", "model_interval")
+sieve_reliability_table(list(Visual = reliability))[, shown]
+```
+
+The bootstrap itself, DMAR's counted bootstrap, with a seed and a small
+`B` so that this vignette builds in seconds (the application
+never lowers `B` to shorten a wait, Hesterberg, 2015); the table reports
+the replications attempted and used. The recorded call is the DMAR call,
+with its seed, `B`, interval method, level, missing data treatment and
+`ncpus`.
+
+```{r reliability-bootstrap, eval = !during_check}
+boot_spec <- sieve_reliability_spec(items, types = types, construct = "Visual",
+  missing = "fiml", B = 400L, seed = 1)
+boot <- sieve_reliability_construct(data, boot_spec, alpha = FALSE)
+sieve_reliability_table(list(Visual = boot))[, c("construct", "omega", "ci_lower",
+  "ci_upper", "interval", "boot_attempted", "boot_used")]
+```
+
+Omega describes the defined composite under its measurement model, and
+what is robust is the denominator only, against misspecification of the
+total variance; the numerator comes from the one-factor model under either
+denominator. The interval does not certify the construct's meaning or
+justify substituting a different set of answered items for each respondent.
+
+## Scoring a Construct
+
+The operational score of a construct, as the Reliability tab's Operational
+Score Specification keeps it, is either a composite computed by
+`sieve_composite_score()` (the mean of the answered items, or that mean
+prorated to the sum, under a minimum answered count or proportion, with
+each respondent's eligibility and answered count) or a Bartlett or
+regression factor score read from the fitted measurement model. Nothing is
+imputed across respondents, and the returned policy states the rule in a
+sentence.
+
+```{r composite}
+scored <- data
+scored$x2[1:5] <- NA
+visual <- sieve_composite_score(scored, items, min_count = 2L)
+table(answered = visual$answered, scored = visual$eligible)
+visual$policy$missing
+head(visual$scores)
+```
+
+An available-response composite is an operational score: a respondent who
+answered two items is scored on different content from one who answered
+three, and a reliability coefficient estimated for the complete composite
+does not describe that procedure. The model-based alternative, a factor
+score estimated under full information maximum likelihood without
+proration, is the next section.
+
+## Scores With Their Respondents
+
+`sieve_factor_score_record()` returns Bartlett or regression scores with a
+person-level interval for every input row, conditioning on the fitted
+parameters as known.
+
+```{r scores}
+scores <- sieve_factor_score_record(result$fit, method = "Bartlett", data = data,
+  original_rows = seq_len(nrow(data)), conf_level = .95)
+head(scores$uncertainty)
+```
+
+Score rows retain the corresponding data-row and original-row references.
+An observation omitted by the estimator has no invented score. For categorical
+ML scores, an extreme response pattern can have no finite ML estimate;
+empirical Bayes modal scoring answers a different, explicitly labeled question.
+
+## Calibration and Validation
+
+The public split service and the CV and Invariance tab use the same engine.
+It samples only rows complete on every included item, even when the selected
+continuous-item estimator otherwise supports full information maximum
+likelihood. The two subsets are disjoint; they still belong to the same
+study, and prior exposure to the validation observations is not erased.
+
+```{r cross-validation}
+split <- sieve_cross_validate(data, meta, holdout = .4, seed = 113,
+  estimator = "mlr")
+split$table
+split$xval
+split$rel
+stopifnot(length(intersect(split$calibration_rows, split$validation_rows)) == 0L)
+split$rng
+```
+
+`eligible_rows`, `calibration_rows`, and `validation_rows` refer to positions
+in the input data before complete-case removal. Keep these references when
+linking a split to respondent records. The discrepancy compares the
+calibration model's covariance with the validation covariance, followed by
+the validation model's own minimized discrepancy; their difference is
+reported as shrinkage. This covariance comparison is unavailable for ordered
+items. Reliability follows the Reliability tab's targets: Robust omega
+(observed denominator) as point estimates for the two halves, since its
+interval is a bootstrap that is not run for the split, and Omega
+(model-implied denominator) with its MLR (sandwich) SE interval in each half and
+for the difference. The service refuses clustered or repeated sampling
+designs because it does not implement design-aware splitting or
+uncertainty for those designs.
+
+The returned RNG record stores the seed actually used and all three
+`RNGkind()` settings. A supplied seed preserves the caller's random number
+stream. With `seed = NULL`, the caller's stream advances by one draw to choose
+the recorded seed. Restore the recorded settings and supply that seed to
+repeat the split in another session. `sieve_analyze("cross_validation", ...)`
+also exposes this service and returns the result as a `siever_analysis`
+object that keeps the request hash and the engine versions with it.
+
+### A Reservation Drawn Before Development
+
+A split drawn after the full data were examined is internal assessment.
+The evaluation can be more than that when the validation rows were
+reserved before the structure and the items were examined and the model
+evaluated on them was frozen before the evaluation (Browne, 2000). In the
+application the reservation is made on the Screening page's Observations
+panel and evaluated once on the CV and Invariance page; from a script,
+`sieve_holdout_sizes()` states what a proportion would reserve,
+`sieve_holdout_draw()` draws the rows by a seed (optionally within the
+strata of a grouping variable), and `sieve_cross_validate()` takes them as
+`validation_rows`, given rather than drawn, so `holdout` and `seed` are
+unused and `rng` is `NULL`.
+
+```{r reservation}
+sieve_holdout_sizes(nrow(data), proportion = .3)
+reserved <- sieve_holdout_draw(seq_len(nrow(data)), proportion = .3, seed = 1)
+given <- sieve_cross_validate(data, meta, validation_rows = reserved$rows,
+  estimator = "mlr")
+c(n_cal = given$n_cal, n_val = given$n_val)
+is.null(given$rng)
+given$rel[, c("Construct", "Coefficient", "Calibration", "Validation", "Difference")]
+```
+
+## The Session Download
+
+The Reproducible Code page leads with Report saved analyses, a report
+from the analyses recorded in the session that runs nothing, and offers
+Run a new analysis and draft, which refits and says so. Its
+Download script and inputs (.tar.gz) archive contains `siever_session.R`,
+the companion input file `siever_inputs.rds` (read back by
+`sieve_replay_read()` against its recorded hash), and a `README.txt`.
+Unpack the archive into one private directory, set the working directory
+there, and run `source("siever_session.R")`. Data are stored once by
+content hash. State-changing expressions run
+in order, with their resulting item definitions, responses, and respondent
+rows checked against the recorded revision. The script calls exported
+SIEVER functions and names its package requirement.
+
+A project file is the private restorable study. A study bundle is a separate
+sharing product: its fresh sharing project keeps the item columns with the
+current item assignments, reversals, scoring policies and sampling
+declaration, without removed respondents, identifier and auxiliary columns,
+private wording and narratives, analyses, project history, or
+external-review records. Read the bundle's `README.txt` and `manifest.R`,
+which state what it includes and excludes, before sharing it.
+
+## Citing What Was Run
+
+Every report and draft the application writes ends with a bibliography of
+the methods actually used, from a verified registry.
+`sieve_method_references()` lists every citation SIEVER can make with the
+claim it supports and where it applies; each analysis record carries the
+keys of the methods its specification used, and
+`sieve_method_bibliography()` formats the deduplicated entries of those
+keys and of the software they ran in, with the versions in use. A method
+is never cited because it exists in the registry, only because an analysis
+used it, and an entry whose record could not be verified is left out of
+every export and named in the `omitted` attribute.
+
+```{r references}
+refs <- sieve_method_references()
+table(refs$kind)
+cat(strwrap(refs$claim[refs$key == "omega_robust"], width = 76), sep = "\n")
+sieve_method_bibliography(c("cfa", "mlr", "fiml", "omega_robust"), software = FALSE)
+```
+
+## Reading an Analysis Result
+
+`sieve_analyze()` offers named headless services for the major analyses and
+returns a `siever_analysis` object. `summary()`, `as.data.frame()`, and `confint()`
+inspect the stored result. The object carries `schema_version`, the version of
+its fields (1), and `intervals`, one table of every confidence interval the
+result holds, filled when the analysis runs: the table and row, the estimate
+and its standard error, the limits, the level, the side (two-sided, or the
+upper bound of HTMT), the method, the number of cases used, and, for a row
+without limits, the reason. A DMAR refusal (from `irt`, `htmt`, `ave`, or
+`content`) is returned as a failed analysis with DMAR's reason rather than
+stopping the script. `print()` lists the interval tables and `confint()` reads
+its limits from `intervals`, following one rule by interval type. With `level = NULL`, the default, it
+returns the stored limits at the level each was stored at. Another level is
+computed only for a Wald interval (lavaan parameters with standard or robust
+standard errors, the Wald intervals of omega, H, and alpha, and factor score
+intervals), from the stored estimate and standard error on the scale the
+interval was formed on, after the stored limits are reproduced at their own
+level; the returned matrix records `conf_level`, `interval_method`, and
+`source`, which is `"stored"` or
+`"computed from the stored estimate and standard error"`. Bootstrap,
+profile likelihood, order-statistic, exact binomial, and noncentral
+chi-square (RMSEA, ECVI) limits are refused at another level, with the call
+that reruns the analysis at that level; for RMSEA that is
+`options(sieve.rmsea_conf_level = )`. One-sided bounds, such as HTMT's, are
+refused at every level, naming the column that holds them. For a dependent
+design, use a supported resolved model specification; the convenience
+dispatcher refuses to pretend that dependent rows are independent
+observations.
+
+## Finding the Analysis Service
+
+The functions below provide the numerical services behind the corresponding
+panels; with `run_app()` and the functions `?SIEVER` names, they are every
+function SIEVER exports, and `help(package = "SIEVER")` lists them with their
+help pages. Calls to DMAR, lavaan, and psych use those packages' documented public
+interfaces. SIEVER's display rounding is separate from returned estimates.
+Read a service's input, missing-response, model, and sampling assumptions
+before interpreting its result; a direct engine call uses that engine's
+assumptions. A row bootstrap does not account for clustered observations.
+
+| Workflow | Public service |
+|---|---|
+| Prepare data and item definitions | `sieve_specification_template()`, `sieve_prepare_study()` |
+| Descriptive summaries | `base::mean()`, `stats::sd()`, `stats::median()`, `DMAR::skewness()`, `DMAR::kurtosis()`; floor/ceiling percentages use the observed minimum/maximum among nonmissing responses, and missingness uses all input rows |
+| Response-pattern screening | `sieve_response_screens()` |
+| Validation reservation | `sieve_holdout_sizes()`, `sieve_holdout_draw()` |
+| Correlation basis and dimensionality | `sieve_retention_cor()`, `sieve_retention_evidence()`, `sieve_correlation_heatmap()` |
+| EFA pattern, simple structure, number of factors, and model fit | `DMAR::fa_exploratory()`, `DMAR::factor_count()`, `DMAR::simple_structure()`, `sieve_efa_factor_plot()`, `sieve_efa_fit_by_k()` |
+| Item and nested-facet review | `sieve_item_diagnostics()`, `sieve_item_rest()`, `sieve_facet_item_rest()` |
+| Content coverage of the included items | `sieve_item_coverage()`, `sieve_coverage_change()` |
+| Constrained item-set search and ordering | `sieve_optimize_items()`, `sieve_order_candidates()` |
+| CFA and structural alternatives | `sieve_cfa_spec()`, `sieve_run_model()`, `sieve_fit_cfa()`, `sieve_compare_structures()`, `sieve_structures_table()` |
+| Fit index changes along a sequence of nested models | `sieve_fit_compare()` |
+| Reuse of an identical fit | `sieve_fit_store()`, `sieve_fit_identity()` |
+| Modification indices and residuals | `sieve_modification_indices()`, `sieve_residual_pairs()` |
+| Model-based bootstrap and latent-correlation boundaries | `sieve_bollen_stine()`, `sieve_latent_bound()` |
+| Reliability, intervals, and operational scores | `sieve_reliability_spec()`, `sieve_reliability_construct()`, `sieve_reliability_table()`, `sieve_composite_score()`, `sieve_score_policy()`, `sieve_score_policy_sensitivity()` |
+| Reliability precision planning | `sieve_plan_congeneric()`, `DMAR::ss_aipe_reliability()` |
+| Model-derived total or weighted composites | `sieve_model_composite()` |
+| Bifactor indices and counted intervals | `sieve_fit_bifactor()`, `sieve_bifactor_bootstrap()` |
+| Expert ratings: I-CVI, modified kappa, CVR, S-CVI | `DMAR::content_validity_index()`; scale summaries are attributes `s_cvi_ave` and `s_cvi_ua` |
+| AVE, HTMT, and method-factor sensitivity | `DMAR::average_variance_extracted()`, `DMAR::htmt()`, `sieve_run_method_factor()` |
+| Single-factor screen and marker adjustment | `DMAR::common_method_single_factor()`, `DMAR::common_method_marker()`, `sieve_marker_sensitivity()` |
+| Stated criterion predictions | `sieve_validity_estimate()`, `sieve_validity_evidence()` |
+| IRT parameters and information | `DMAR::irt_grm()`, `DMAR::irt_information()`, and the evidence functions `sieve_irt_parameter_evidence()`, `sieve_irt_category_probabilities()`, `sieve_irt_information_bands()`, `sieve_irt_empirical_traces()`, `sieve_irt_residual_pairs()`, `sieve_irt_bivariate_table()` |
+| Structural paths, indirect effects, and R-squared | `sieve_run_structural()`, `sieve_indirect_mc()`, `sieve_R2_intervals()`, `sieve_outcome_scale()` |
+| Multiple imputation sensitivity for ordered items | `sieve_mi_plan()`, `sieve_mi_model()` |
+| Internal calibration and validation, and evaluation on reserved rows | `sieve_cross_validate()` |
+| Invariance, partial constraints, and interpretation | `sieve_fit_invariance()`, `sieve_invariance_interpret()`, `sieve_anchor_sensitivity()`, `sieve_ordinal_fit_impact()`, `lavaan::lavTestScore()` |
+| Noninvariance impact and alignment | `DMAR::dmacs()`, `DMAR::measurement_alignment()` |
+| Longitudinal models and contrasts | `sieve_longitudinal_spec()`, `sieve_run_longitudinal()`, `sieve_longitudinal_compare()`, `sieve_longitudinal_contrasts()` |
+| Scores, scoring syntax, and fixed references | `sieve_factor_score_record()`, `sieve_scoring_code()`, `sieve_construct_norms()`, `sieve_norm_freeze()`, `sieve_norm_read()`, `sieve_norm_apply()`, `sieve_norm_transform_limits()` |
+| Local wording and keying review | `sieve_wording_checks()`, `sieve_reverse_balance()` |
+| The levels of the intervals | `sieve_default_conf_level()`, `sieve_default_rmsea_conf_level()` |
+| The methods registry, bibliography, and methods draft | `sieve_method_references()`, `sieve_method_bibliography()`, `sieve_methods_draft()` |
+| Model diagrams | `sieve_diagram_spec()`, `sieve_draw_diagram()`, `sieve_export_diagram()` |
+| Projects and what they hold | `sieve_project_write()`, `sieve_project_read()`, `sieve_project_analyses()`, `sieve_project_report()`, `sieve_project_decisions()` |
+| The session script and its replay | `sieve_session_write()`, `sieve_replay()`, `sieve_replay_read()`, `sieve_replay_bind()`, `sieve_replay_verify()`, `sieve_replay_engine_check()` |
+
+For example, the corrected item-rest calculation keeps its pair count and
+reason when an estimate is undefined. A criterion prediction reads an
+existing interval against a stated expectation and does not turn agreement
+into a validity verdict. The marker-variable adjustment of Lindell and
+Whitney (2001) is read over several values of the marker correlation, with
+its constant method effect assumption stated.
+
+```{r item-and-criterion-services}
+sieve_item_rest(data, paste0("x", 1:3))
+criterion <- sieve_validity_estimate(data$x1, data$x2, conf_level = .90)
+estimates <- data.frame(construct = "Visual item", criterion = "Second item",
+  r = criterion$r, lower = criterion$lower, upper = criterion$upper,
+  n = criterion$n, p = criterion$p, reason = criterion$reason)
+expectations <- data.frame(construct = "Visual item", criterion = "Second item",
+  kind = "directional", sign = 1, min_abs = NA_real_, bound = NA_real_)
+sieve_validity_evidence(estimates, expectations)
+scoring <- sieve_scoring_code(meta, values = "processed")
+scoring$name_map
+
+construct_scores <- data.frame(
+  Visual  = sieve_composite_score(data, paste0("x", 1:3))$scores,
+  Textual = sieve_composite_score(data, paste0("x", 4:6))$scores,
+  Speed   = sieve_composite_score(data, paste0("x", 7:9))$scores
+)
+sieve_marker_sensitivity(cor(construct_scores), marker_r = c(.05, .10), n = nrow(data))
+```
+
+In a standalone ledger, `meta$status[meta$item == "x1"] <- "parked"` excludes
+that item from later calls while retaining its response column (the
+specification file and the interface say included and excluded; the ledger
+stores `"active"` and `"parked"`). Set the status to `"active"` to include it
+again. The application's item and respondent action histories are preserved
+through its project and session workflows; changing a separate data frame
+does not create those records.
+
+## References
+
+Browne, M. W. (2000). Cross-validation methods. *Journal of Mathematical
+Psychology, 44*, 108--132.
+
+Hesterberg, T. C. (2015). What teachers should know about the bootstrap:
+Resampling in the undergraduate statistics curriculum. *The American
+Statistician, 69*, 371--386.
+
+Kelley, K., & Pornprasertmanit, S. (2016). Confidence intervals for
+population reliability coefficients: Evaluation of methods,
+recommendations, and software for composite measures. *Psychological
+Methods, 21*, 69--92.
+
+Lindell, M. K., & Whitney, D. J. (2001). Accounting for common method
+variance in cross-sectional research designs. *Journal of Applied
+Psychology, 86*, 114--121.
+
+## Session Information
+
+```{r session-info}
+sessionInfo()
+```

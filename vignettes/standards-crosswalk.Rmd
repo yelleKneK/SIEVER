@@ -1,0 +1,318 @@
+---
+title: "SIEVER and the Standards for Educational and Psychological Testing (2014)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{SIEVER and the Standards for Educational and Psychological Testing (2014)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Purpose and Scope
+
+The *Standards for Educational and Psychological Testing* (AERA, APA, &
+NCME, 2014; the Standards below) are the benchmark against which a testing
+program, a test publisher, a journal reviewer or a licensing board judges
+the documentation of a test. The Standards judge interpretations of scores
+for intended uses, not software. No program satisfies them on a
+researcher's behalf, and a SIEVER result is evidence for a validity
+argument only once the researcher has said what the scores are to mean,
+for whom, and how they will be used.
+
+This article maps each SIEVER output to the chapter of the Standards it
+serves. For every output it says what SIEVER reports, where to find it in
+the application and from R, and what the output does not establish. A
+final table lists evidence the Standards call for that SIEVER does not
+provide, so that a technical report can say where that evidence came from
+instead. The Standards' three foundational chapters organize the article:
+Validity (Chapter 1), Reliability/Precision and Errors of Measurement
+(Chapter 2), and Fairness in Testing (Chapter 3). The outputs that serve
+the chapters on test design and development; on scores, scales, norms,
+score linking and cut scores; and on supporting documentation follow in
+one table.
+
+This article cites the Standards by chapter, not by numbered standard. A
+technical report that claims to address a numbered standard should cite it
+from the text of the Standards.
+
+## How to Read the Tables
+
+Each table has one row per SIEVER output. **Where** names the place in
+the application first, as the application's own messages name it: the
+workspace, an arrow, and the page (Study → Content Validity), with the tab
+within the page in quotation marks. The R function that computes the same
+result without the application follows the semicolon; `sieve_analyze()`
+runs most of the analyses by name. A function marked experimental may
+change its arguments or its result in a later release. **What it does not
+establish** is the limit a technical report should state beside the
+result.
+
+The bar across the top of the application shows five workspaces, each
+answering one question; select a workspace, then one of its pages. Any page
+can be opened at any time, in any order.
+
+| Workspace | The question it answers | Its pages |
+|:-----------|:-------------------------------------|:-------------------------------|
+| Study | What are the items and the data, and are they ready to analyze? | Ingest, Content Validity, Screening |
+| Structure | How many dimensions are there, and which items measure them? | Dimensionality, EFA, Items, Optimizer, CFA, Bifactor, Network |
+| Scores | How is each score formed, and how precise is it? | Reliability (with its Scoring and Norms tab), IRT |
+| Evidence | What do the scores relate to, and do they mean the same thing across groups and samples? | Validity, CV and Invariance, SEM |
+| Report | What was done, and how can it be reproduced? | Reproducible Code |
+
+The Scientific task assistant belongs to no workspace: it opens from the
+project bar, which sits above every page.
+
+Every interval is at the 95% level by default
+(`sieve_default_conf_level()`), except the RMSEA's and that of the
+unbiased SRMR beside the SRMR, which are at 90%
+(`sieve_default_rmsea_conf_level()`, changed with
+`options(sieve.rmsea_conf_level = )`). No fit index is read against a
+cutoff. Where a page names a conventional reference value, it labels the
+value as a convention with its source; a convention is not a verdict.
+Every number is stored at full precision and rounded only for display.
+
+## Validity (Chapter 1)
+
+The validity chapter treats validation as building an argument, from
+evidence and theory, for an interpretation of scores for a proposed use.
+It organizes the evidence by its source: test content, response processes,
+internal structure, relations to other variables, and the consequences of
+testing. SIEVER's contributions are largest for internal structure and for
+relations to other variables. It summarizes expert judgments of content but
+cannot supply them, it screens response patterns but gathers no evidence
+about response processes, and it contributes nothing on consequences.
+
+Because the argument concerns a stated interpretation, the first row is the
+statement itself.
+
+| Source of evidence | SIEVER output | Where | What it does not establish |
+|:-------------|:-------------------------------------|:-----------------|:-----------------------|
+| The intended interpretation and use | Versioned construct definitions; a falsifiable claim frozen with the current item and score revision and the researcher's declaration of which data it has seen; evaluations appended without changing the frozen claim | The project bar's Scientific task assistant ("Construct and claim") | SIEVER records the declaration of exposure; it cannot verify it. |
+| Test content | An expert panel's relevance ratings, summarized: the item-level content validity index (I-CVI) with its exact binomial interval and the scale-level S-CVI/Ave and S-CVI/UA (Lynn, 1986; Polit & Beck, 2006), the modified kappa, which corrects the I-CVI for chance agreement (Polit, Beck, & Owen, 2007), and the content validity ratio (Lawshe, 1975) | Study → Content Validity; `sieve_analyze("content")`, which calls `DMAR::content_validity_index()` | The indices summarize the panel's judgments; their weight as evidence rests on the composition of the panel and on the definition of the domain. |
+| Test content | Included items per construct and per facet, the change an exclusion makes, and an advisory when an exclusion leaves a construct or a facet with no included item | Study → Screening ("Item-total"), Structure → Items; `sieve_item_coverage()`, `sieve_coverage_change()` | Counts items, not the breadth of content they represent; narrowing a pool can raise internal consistency at the expense of breadth (Clark & Watson, 2019). |
+| Test content | Deterministic checks of item wording, the balance of reverse-keyed items in each construct, and an expert review brief of a construct's wordings | Study → Content Validity ("Item Writing Checks"), Study → Ingest, Structure → Items; `sieve_wording_checks()`, `sieve_reverse_balance()` | Checks of form; not a judgment of relevance, comprehension or representation. |
+| Response processes (indirectly) | Response-pattern screens: longstring, within-person response variability, and Mahalanobis distance, with flags that never remove a respondent by themselves (Meade & Craig, 2012) | Study → Screening ("Careless responding"); `sieve_analyze("screening")`, `sieve_response_screens()` | These screen the quality of the data. They are not evidence about the cognitive processes respondents engage. |
+| Internal structure | The evidence on the number of factors: parallel analysis, Very Simple Structure, and the fit of exploratory models by number of factors (RMSEA with its 90% interval, CFI, SRMR) | Structure → Dimensionality; `sieve_retention_evidence()`, `sieve_efa_fit_by_k()` | No number of factors is read from a fit-index cutoff; the number retained is the researcher's decision. |
+| Internal structure | The exploratory solution: pattern and structure matrices, factor correlations and communalities, with intervals for the rotated solution | Structure → EFA; `DMAR::fa_exploratory()` | An exploratory solution describes the sample that chose it. |
+| Internal structure | The confirmatory measurement model: the chi-square test, RMSEA with its 90% interval, CFI, TLI and SRMR; standardized loadings and factor correlations with intervals; residual correlations; competing structures compared within one family of fit indices | Structure → CFA; `sieve_fit_cfa()`, `sieve_residual_pairs()`, `sieve_compare_structures()` | A model fit to the data that shaped it is not confirmed by that fit (see the last row). |
+| Internal structure | Bifactor indices: ECV, omega, omegaH, omegaHS and H with bootstrap intervals, and PUC, which the model's structure fixes and so has no interval (Rodriguez, Reise, & Haviland, 2016) | Structure → Bifactor; `sieve_fit_bifactor()`, `sieve_bifactor_bootstrap()` | Whether a total score, subscores or both are supported is the researcher's reading; no cutoff is established. |
+| Internal structure | The graded response model for ordered items (Samejima, 1969): item parameters with their uncertainty, local dependence, and category response traces | Scores → IRT; `sieve_irt_parameter_evidence()` (experimental), `sieve_irt_residual_pairs()` (experimental) | Fit one construct at a time, so unidimensional by construction. |
+| Relations to other variables: convergent and discriminant | Latent correlations among the constructs with intervals; the average variance extracted with its square root beside each construct's largest correlation with another, the comparison Fornell and Larcker proposed (Fornell & Larcker, 1981), with no cutoff applied; a theoretical bound on a latent correlation compared with the fitted model; HTMT with a one-sided percentile bootstrap upper bound (Henseler, Ringle, & Sarstedt, 2015) | Evidence → Validity ("Construct correlations and AVE", "HTMT (optional)"); `sieve_latent_bound()`, `sieve_analyze("ave")`, `sieve_analyze("htmt")` | An upper bound well below 1 is evidence that two constructs separate, not proof of discriminant validity; SIEVER applies no cutoff to HTMT. |
+| Relations to other variables: test-criterion | The correlation of each construct's operational score with each criterion, with its Fisher z interval, read against a prediction the researcher states (a direction, a smallest magnitude, or a bound on a small relation) | Evidence → Validity ("Criterion validity"); `sieve_validity_estimate()`, `sieve_validity_evidence()` | Observed-score correlations are attenuated by measurement error. The table locates each interval relative to the prediction and does not declare the prediction supported. |
+| Relations to other variables: latent | Structural relations among the latent constructs, and from them to criteria, which measurement error in the items does not attenuate: standardized coefficients with intervals, R-squared with its interval, and indirect effects with Monte Carlo intervals | Evidence → SEM, Evidence → Validity ("Structural model"); `sieve_run_structural()`, `sieve_R2_intervals()`, `sieve_indirect_mc()` | A coefficient estimated from cross-sectional data describes a relation, not a causal effect. |
+| Relations to other variables: method | Common method variance: Harman's single-factor screen, the marker-variable adjustment with its sensitivity to the marker correlation (Lindell & Whitney, 2001), and a latent method factor | Evidence → Validity ("Common method variance"); `sieve_marker_sensitivity()`, `sieve_run_method_factor()` | None is decisive alone, and a small result does not establish negligible method bias. |
+| Evidence from data that did not shape the scale | A validation reservation drawn before development; a frozen model evaluated once on the reserved rows and labeled as specified before evaluation or revised during development; calibration and validation fit with ECVI and its interval; the cross-validation discrepancy (Browne, 2000; Cudeck & Browne, 1983) | Study → Screening ("Observations"), Evidence → CV and Invariance ("Holdout / Cross-Validation"); `sieve_holdout_sizes()`, `sieve_holdout_draw()`, `sieve_cross_validate()` | A split drawn after the data were examined is internal assessment, and the record says so. |
+
+The last row answers the validity chapter's concern that evidence be
+gathered for the interpretation proposed. A sample that shaped the item set
+cannot supply, on its own, evidence that the item set generalizes beyond
+it, and SIEVER keeps the record of which results read which rows.
+
+## Reliability/Precision and Errors of Measurement (Chapter 2)
+
+The reliability/precision chapter asks for the precision of scores as they
+are used: coefficients and standard errors of measurement for the
+population and conditions of use, conditional standard errors where
+precision varies along the score scale, the precision of subscores, and
+the consistency of classifications where scores are used to classify.
+SIEVER's coefficients come from a single administration of the items, so
+the error they describe is that of sampling items from a domain. Precision
+across occasions, forms or raters needs designs SIEVER does not analyze
+(see What SIEVER Does Not Provide).
+
+| Aspect of precision | SIEVER output | Where | What it does not establish |
+|:-------------|:-------------------------------------|:-----------------|:-----------------------|
+| The reliability of each construct's composite | Robust omega (observed denominator), the primary coefficient, with its percentile bootstrap interval, run on request (Kelley & Pornprasertmanit, 2016); omega (model-implied denominator) with DMAR's default interval, from the MLR (sandwich) standard error with limits on the logit scale; categorical omega for ordered or binary items with DMAR's BCa bootstrap interval; coefficient H with its interval (Hancock & Mueller, 2001); alpha only on request, labeled as a legacy comparison | Scores → Reliability; `sieve_analyze("reliability")`, `sieve_reliability_construct()`, `sieve_reliability_table()` | A coefficient describes the composite of the included items in the population sampled; it is not a fixed property of the instrument. |
+| The reliability of each facet | The same coefficients for each facet's own items | Scores → Reliability (the Reporting scope control) | Facet coefficients are distinct from the bifactor subscale coefficients. |
+| The model behind each coefficient | Beside each omega, the one-factor model's RMSEA with its 90% interval and the largest residual correlation with its item pair | Scores → Reliability | Robust omega is robust to misspecification of the total variance only; it does not repair a misspecified model. |
+| The resampling behind each interval | The bootstrap replications attempted, converged, admissible and used; under a declared cluster design, a bootstrap that resamples whole clusters | Scores → Reliability | DMAR's rule that no interval is formed from fewer than half the replications is a safeguard of estimability, not a guarantee of coverage. |
+| The precision of the operational score | The score specification in force (the mean of the answered items, a prorated sum, or a Bartlett or regression factor score), the minimum number of answered items, the eligible n, and a comparison of response policies | Scores → Reliability ("Operational scores"); `sieve_score_policy()`, `sieve_composite_score()`, `sieve_score_policy_sensitivity()` | Omega of the complete-response composite does not certify a partial-response scoring rule. |
+| The precision of individual scores | Factor scores with an interval for each person (regression or Bartlett, conditional on the fitted parameters) and the determinacy of the scores (Estabrook & Neale, 2013) | Scores → Reliability ("Factor scores (latent)"); `sieve_factor_score_record()` | The person-level intervals do not include the uncertainty of the estimated parameters. |
+| Conditional precision | Test information and the conditional standard error of theta (one over the square root of the information) along the trait, with pointwise bands for the information | Scores → IRT; `sieve_irt_information_bands()` (experimental) | Ordered items only; no conditional standard error is given for continuous items or for an observed composite. |
+| The precision of subscores | omegaHS and PUC from the bifactor model, and the facet coefficients | Structure → Bifactor, Scores → Reliability | The added value of a subscore over the total score is not computed. |
+| The precision a later study will attain | The sample size for an omega interval no wider than a chosen width, with optional assurance (Kelley & Pornprasertmanit, 2016; Maxwell, Kelley, & Rausch, 2008), and a planner for a congeneric model from loadings and uniquenesses supplied | Scores → Reliability ("Plan the Next Study"); `DMAR::ss_aipe_reliability()`, `sieve_plan_congeneric()` | Without assurance, the width target is met in expectation only. |
+
+## Fairness in Testing (Chapter 3)
+
+The fairness chapter treats fairness as a matter of validity for every
+group of test takers. Among its concerns are measurement bias, in which
+scores do not carry the same meaning in different groups (differential
+item functioning and differential prediction are two of its forms), and
+access to the construct being measured. SIEVER's contribution is the
+factor-analytic examination of measurement bias: whether the parameters of
+the measurement model are equal across groups, where they are not, and by
+how much (Meredith, 1993). It does not address access, accommodations or
+the conditions of testing.
+
+| Question | SIEVER output | Where | What it does not establish |
+|:-------------|:-------------------------------------|:-----------------|:-----------------------|
+| Is the measurement model the same across groups? | The cumulative invariance ladder for a declared grouping variable (configural, thresholds for ordered items, metric, scalar, strict), with scaled chi-square difference tests and the changes in CFI and RMSEA (Millsap & Yun-Tein, 2004) | Evidence → CV and Invariance ("Measurement Invariance"); `sieve_analyze("invariance")`, `sieve_fit_invariance()`, which call `DMAR::measurement_invariance()` | Tested on the first-order correlated-factors model only. The changes in fit indices are read beside conventions from simulation studies (Cheung & Rensvold, 2002), not as tests. |
+| Where is the model not the same? | A score test for each equality constraint, refits that free the selected parameters, and a comparison of prespecified anchor sets | Evidence → CV and Invariance ("Measurement Invariance"); `sieve_anchor_sensitivity()` (experimental) | Parameters freed because the data pointed to them need confirmation on new data. |
+| How large is the difference? | dMACS for each item, on the scale of a standardized mean difference (Nye & Drasgow, 2011), and for ordered items the expected-score impact on a common metric | Evidence → CV and Invariance ("Measurement Invariance"); `DMAR::dmacs()`, `sieve_ordinal_fit_impact()` (experimental) | dMACS is not computed for ordered items, whose thresholds carry their location. |
+| Which group comparisons does the model license? | The latent mean and variance contrasts that the fitted constraints license | Evidence → CV and Invariance ("Measurement Invariance"); `sieve_invariance_interpret()` | A licensed comparison of latent means is not a comparison of observed scores. |
+| Is the model approximately the same across many groups? | Alignment of the configural solution (Asparouhov & Muthén, 2014), with the items that contribute most to noninvariance | Evidence → CV and Invariance ("Alignment"); `DMAR::measurement_alignment()` | Approximate invariance, judged from the alignment's own diagnostics. |
+| Is the model the same across occasions? | Longitudinal invariance across declared waves | Evidence → CV and Invariance ("Longitudinal Invariance"); `sieve_run_longitudinal()` (experimental) | The mapping of items to waves is the researcher's declaration, which the data cannot verify. |
+
+## Scores, Norms, Test Development, and Documentation
+
+The remaining outputs serve the chapters on test design and development;
+on scores, scales, norms, score linking and cut scores; and on supporting
+documentation for tests.
+
+| Topic | SIEVER output | Where | What it does not establish |
+|:-------------|:-------------------------------------|:-----------------|:-----------------------|
+| Item analysis | Corrected item-rest correlations by construct and by facet, the change in robust omega if an item were excluded (alpha's on request), and the Items page's live exploratory loadings; exclusions with their reasons, all reversible | Study → Screening ("Item-total"), Structure → Items; `sieve_item_rest()`, `sieve_item_diagnostics()` | A flag is evidence to weigh, not an exclusion. |
+| Selecting items | A bounded search of the item sets the content constraints allow, each candidate with robust omega and fit | Structure → Optimizer; `sieve_optimize_items()` | The best of many candidates is best partly by chance, so its statistics are optimistic, and a chosen set needs independent data. |
+| Score scales | The operational score of each construct, with scoring syntax that applies each item's reversal bounds once | Scores → Reliability ("Operational scores", "Scoring and Norms"); `sieve_scoring_code()` | A defined score is not thereby a precise or a valid one; the rows above give its evidence. |
+| Norms | A sample reference table (the eligible n, the mean and SD, T scores, and quantiles with distribution-free percentile limits); a frozen calibration reference with its target population, applied unchanged to later cohorts; the uncertainty of the calibration transformation | Scores → Reliability ("Scoring and Norms"); `sieve_analyze("norms")`, `sieve_construct_norms()`, `sieve_norm_freeze()`, `sieve_norm_apply()`, `sieve_norm_transform_limits()` | A sample reference describes the sample. It is a population norm only if the sample was drawn to represent that population. |
+| Supporting documentation | A methods and results draft; the saved-results report; the analysis registry (inputs, input revisions, estimators, missing data treatments, engine versions); decision records with their reasons; a session script that replays the analyses | Report → Reproducible Code; `sieve_methods_draft()`, `sieve_project_report()`, `sieve_project_analyses()`, `sieve_project_decisions()`, `sieve_replay()` | A draft for the researcher to revise; it is not a technical manual. |
+
+## What SIEVER Does Not Provide
+
+The evidence below is called for by the Standards and comes from outside
+SIEVER. A technical report should say where it came from, or why it does
+not apply to the intended use.
+
+| Evidence | Chapter | Comment |
+|:----------------------------|:----------------|:-------------------------------------|
+| Evidence based on response processes: cognitive interviews, think-aloud protocols, response times | Validity (1) | The Scientific task assistant can propose such a study in its plan; the evidence is gathered outside the item responses. |
+| Evidence based on the consequences of testing | Validity (1) | |
+| Validity generalization: meta-analysis of test-criterion relations across studies | Validity (1) | |
+| Reliability across occasions or forms: test-retest and alternate-forms coefficients | Reliability/precision (2) | SIEVER's coefficients come from a single administration. |
+| Generalizability theory with several facets of error, and the agreement or reliability of raters and scorers | Reliability/precision (2) | |
+| The standard error of measurement of an observed composite, and score bands built from it | Reliability/precision (2) | Factor scores carry person-level intervals, and the IRT page gives the conditional standard error of theta for ordered items. |
+| Conditional standard errors for continuous items or for an observed composite | Reliability/precision (2) | |
+| The reliability of difference scores, and the added value of subscores | Reliability/precision (2) | |
+| Classification consistency and accuracy at a cut score | Reliability/precision (2); scores, scales, norms, score linking and cut scores | |
+| Reliability reported side by side for demographic groups | Reliability/precision (2); Fairness (3) | `sieve_reliability_construct()` on each group's rows gives each group's coefficients, one call per group. |
+| Differential item functioning by observed-score methods (Mantel-Haenszel, logistic regression) or by IRT likelihood ratio tests | Fairness (3) | The invariance ladder examines the same question for the parameters of the factor model. |
+| Differential prediction: group differences in the regression of a criterion on the scores | Fairness (3) | The SEM page fits its structural model in one group. |
+| Accessibility, accommodations, universal design, and the adaptation or translation of a test | Fairness (3) | With both forms' responses in the data and a grouping variable, the invariance ladder can compare the measurement models of a translated form and its source. |
+| Score linking and equating, vertical scales, and concordance tables | Scores, scales, norms, score linking and cut scores | |
+| Standard setting: establishing cut scores | Scores, scales, norms, score linking and cut scores | |
+| Normative samples drawn to represent a defined population | Scores, scales, norms, score linking and cut scores | The sample reference table describes the sample loaded. |
+| Adaptive testing, item banking, and the assembly of forms to targets | Test design and development | |
+| Test administration and security, score reports to test takers, and the rights and responsibilities of test takers and test users | The chapters on these topics | |
+
+## Using the Crosswalk in a Technical Report
+
+1. **State the intended interpretation and use first.** Every row above is
+   evidence only in relation to a stated interpretation; the Construct and
+   claim tab keeps the statement with the item revision it concerns.
+2. **Report each output with its interval and its provenance.** The
+   methods draft and the analysis registry name, for every result, the
+   model, the estimator, the treatment of missing data, the rows and the n.
+3. **Separate exploratory from confirmatory evidence.** Say which results
+   were computed on the data that shaped the item set and which on reserved
+   rows; the reservation and the evaluation labels make that distinction
+   checkable.
+4. **Say where the rest came from.** For each entry in the last table that
+   applies to the intended use, cite the study or the procedure that
+   supplied it.
+5. **Keep the record.** The project file, the session script and the
+   decision records document what was done and why, for the chapter on
+   supporting documentation.
+
+The correctness of SIEVER's own computations is a separate question from
+the Standards'; `vignette("validation", package = "SIEVER")` checks
+SIEVER's numbers against lavaan, DMAR and derivations written out in the
+open.
+
+## References
+
+American Educational Research Association, American Psychological
+Association, & National Council on Measurement in Education. (2014).
+*Standards for educational and psychological testing*. American
+Educational Research Association.
+
+Asparouhov, T., & Muthén, B. (2014). Multiple-group factor analysis
+alignment. *Structural Equation Modeling, 21*(4), 495--508.
+https://doi.org/10.1080/10705511.2014.919210
+
+Browne, M. W. (2000). Cross-validation methods. *Journal of Mathematical
+Psychology, 44*(1), 108--132. https://doi.org/10.1006/jmps.1999.1279
+
+Cheung, G. W., & Rensvold, R. B. (2002). Evaluating goodness-of-fit indexes
+for testing measurement invariance. *Structural Equation Modeling, 9*(2),
+233--255. https://doi.org/10.1207/S15328007SEM0902_5
+
+Clark, L. A., & Watson, D. (2019). Constructing validity: New developments
+in creating objective measuring instruments. *Psychological Assessment,
+31*(12), 1412--1427. https://doi.org/10.1037/pas0000626
+
+Cudeck, R., & Browne, M. W. (1983). Cross-validation of covariance
+structures. *Multivariate Behavioral Research, 18*(2), 147--167.
+
+Estabrook, R., & Neale, M. (2013). A comparison of factor score estimation
+methods in the presence of missing data: Reliability and an application to
+nicotine dependence. *Multivariate Behavioral Research, 48*(1), 1--27.
+https://doi.org/10.1080/00273171.2012.730072
+
+Fornell, C., & Larcker, D. F. (1981). Evaluating structural equation models
+with unobservable variables and measurement error. *Journal of Marketing
+Research, 18*(1), 39--50. https://doi.org/10.1177/002224378101800104
+
+Hancock, G. R., & Mueller, R. O. (2001). Rethinking construct reliability
+within latent variable systems. In R. Cudeck, S. du Toit, & D. Sörbom
+(Eds.), *Structural equation modeling: Present and future* (pp. 195--216).
+Scientific Software International.
+
+Henseler, J., Ringle, C. M., & Sarstedt, M. (2015). A new criterion for
+assessing discriminant validity in variance-based structural equation
+modeling. *Journal of the Academy of Marketing Science, 43*(1), 115--135.
+https://doi.org/10.1007/s11747-014-0403-8
+
+Kelley, K., & Pornprasertmanit, S. (2016). Confidence intervals for
+population reliability coefficients: Evaluation of methods,
+recommendations, and software for composite measures. *Psychological
+Methods, 21*(1), 69--92. https://doi.org/10.1037/a0040086
+
+Lawshe, C. H. (1975). A quantitative approach to content validity.
+*Personnel Psychology, 28*(4), 563--575.
+
+Lindell, M. K., & Whitney, D. J. (2001). Accounting for common method
+variance in cross-sectional research designs. *Journal of Applied
+Psychology, 86*(1), 114--121. https://doi.org/10.1037/0021-9010.86.1.114
+
+Lynn, M. R. (1986). Determination and quantification of content validity.
+*Nursing Research, 35*(6), 382--385.
+
+Maxwell, S. E., Kelley, K., & Rausch, J. R. (2008). Sample size planning
+for statistical power and accuracy in parameter estimation. *Annual Review
+of Psychology, 59*, 537--563.
+https://doi.org/10.1146/annurev.psych.59.103006.093735
+
+Meade, A. W., & Craig, S. B. (2012). Identifying careless responses in
+survey data. *Psychological Methods, 17*(3), 437--455.
+
+Meredith, W. (1993). Measurement invariance, factor analysis and factorial
+invariance. *Psychometrika, 58*(4), 525--543.
+https://doi.org/10.1007/BF02294825
+
+Millsap, R. E., & Yun-Tein, J. (2004). Assessing factorial invariance in
+ordered-categorical measures. *Multivariate Behavioral Research, 39*(3),
+479--515.
+
+Nye, C. D., & Drasgow, F. (2011). Effect size indices for analyses of
+measurement equivalence: Understanding the practical importance of
+differences between groups. *Journal of Applied Psychology, 96*(5),
+966--980.
+
+Polit, D. F., & Beck, C. T. (2006). The content validity index: Are you
+sure you know what's being reported? Critique and recommendations.
+*Research in Nursing & Health, 29*(5), 489--497.
+
+Polit, D. F., Beck, C. T., & Owen, S. V. (2007). Is the CVI an acceptable
+indicator of content validity? Appraisal and recommendations. *Research in
+Nursing & Health, 30*(4), 459--467. https://doi.org/10.1002/nur.20199
+
+Rodriguez, A., Reise, S. P., & Haviland, M. G. (2016). Evaluating bifactor
+models: Calculating and interpreting statistical indices. *Psychological
+Methods, 21*(2), 137--150. https://doi.org/10.1037/met0000045
+
+Samejima, F. (1969). Estimation of latent ability using a response pattern
+of graded scores. *Psychometrika, 34*(S1), 1--97.
+https://doi.org/10.1007/BF03372160

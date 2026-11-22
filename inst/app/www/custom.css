@@ -1,0 +1,452 @@
+/* SIEVER app styling: a navy header, a warm page tint, navy table headers
+   with a metallic gold rule. The variable names below are internal (the nd prefix
+   is the stored name of the default palette, never shown); the page tint is
+   --sieve-tint; change that one value to retint the app. */
+:root {
+  --nd-navy: #011344;
+  --nd-metallic-gold: #a7931d;
+  --nd-yellow-gold: #c29800;
+  --nd-pale-yellow: #e2e260;
+  --nd-light-olive: #a8a500;
+  --nd-secondary-black: #1e1913;
+  --nd-background: #fffef8;     /* the light, easy on the eyes warm white */
+  --sieve-tint: var(--nd-background);
+}
+
+body,
+.bslib-page-navbar .navbar + div,
+.tab-content {
+  background-color: var(--sieve-tint);
+  color: var(--nd-secondary-black);
+}
+
+/* Cards and value boxes stay near white so they read as raised panels
+   against the warm tint. */
+.card,
+.bslib-value-box {
+  background-color: #ffffff;
+}
+
+/* The header. sieve_theme() hands the header color to bslib as the navbar-bg
+   Sass variable, and what bslib does with that variable has changed between
+   releases: bslib 0.9.0 and 0.11.0 paint the header with it, while bslib
+   0.7.0 (Bootstrap 5) keeps a white header and still draws the white links
+   chosen for a dark one, which leaves the navigation unreadable. The rules
+   below state the header outright, so it does not depend on any one release:
+   the navy of the default palette behind white text, the same values bslib
+   0.11.0 computes. --sieve-navbar-bg repeats sieve_chrome_colors()[["navy"]]
+   and --sieve-accent repeats sieve_chrome_colors()[["accent"]] (a test keeps
+   each pair in step). Contrast against the header (WCAG 2 relative
+   luminance): white 15.79 to 1, a hovered tab 10.49 to 1, a tab at rest
+   7.37 to 1, an optional tab at rest 5.67 to 1, each above the 4.5 to 1
+   required of normal text. */
+:root {
+  --sieve-navbar-bg: #0c2340;
+  --sieve-navbar-fg: #ffffff;                         /* title, active tab */
+  --sieve-navbar-fg-hover: rgba(255, 255, 255, 0.8);  /* hovered tab */
+  --sieve-navbar-fg-rest: rgba(255, 255, 255, 0.65);  /* tab at rest */
+  --sieve-navbar-fg-optional: rgba(255, 255, 255, 0.55);  /* an optional tab at rest */
+  --sieve-accent: #243e8b;                            /* the lighter blue: links, the active sub-tab, value box borders */
+}
+nav.navbar.navbar-default,
+nav.navbar.navbar-inverse {
+  background-color: var(--sieve-navbar-bg) !important;
+  --bslib-navbar-default-bg: var(--sieve-navbar-bg);  /* read by bslib 0.7.0 */
+  --bslib-navbar-inverse-bg: var(--sieve-navbar-bg);
+  --bslib-navbar-light-bg: var(--sieve-navbar-bg);    /* read by 0.9.0, 0.11.0 */
+  --bslib-navbar-dark-bg: var(--sieve-navbar-bg);
+  --bs-navbar-color: var(--sieve-navbar-fg-rest);
+  --bs-navbar-hover-color: var(--sieve-navbar-fg-hover);
+  --bs-navbar-active-color: var(--sieve-navbar-fg);
+  --bs-navbar-brand-color: var(--sieve-navbar-fg);
+  --bs-navbar-brand-hover-color: var(--sieve-navbar-fg);
+  --bs-navbar-toggler-border-color: rgba(255, 255, 255, 0.35);
+  --bs-navbar-toggler-icon-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255,255,255,0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+nav.navbar.navbar-default .navbar-brand,
+nav.navbar.navbar-inverse .navbar-brand { color: var(--sieve-navbar-fg); }
+nav.navbar.navbar-default .navbar-nav .nav-link,
+nav.navbar.navbar-inverse .navbar-nav .nav-link { color: var(--sieve-navbar-fg-rest); }
+nav.navbar.navbar-default .navbar-nav .nav-link:hover,
+nav.navbar.navbar-default .navbar-nav .nav-link:focus,
+nav.navbar.navbar-inverse .navbar-nav .nav-link:hover,
+nav.navbar.navbar-inverse .navbar-nav .nav-link:focus { color: var(--sieve-navbar-fg-hover); }
+nav.navbar.navbar-default .navbar-nav .nav-link.active,
+nav.navbar.navbar-default .navbar-nav .show > .nav-link,
+nav.navbar.navbar-inverse .navbar-nav .nav-link.active,
+nav.navbar.navbar-inverse .navbar-nav .show > .nav-link { color: var(--sieve-navbar-fg); }
+
+.navbar-brand small { font-weight: 400; }
+.navbar-brand .sieve-brand-hex {
+  width: 32px;
+  height: 34px;
+  object-fit: contain;
+  margin-right: .5rem;
+  vertical-align: middle;
+}
+
+/* The optional tabs (sieve_tab_paths(): Content Validity, Optimizer,
+   Bifactor, Network, IRT, SEM, Reproducible Code) keep their places in
+   the navbar and are told from the core path by a lighter label: the link
+   around a span of class sieve-nav-optional rests at 55 percent white
+   (--sieve-navbar-fg-optional) where a core tab rests at 65, and is white
+   when hovered or active like any other. The ratio is stated with the
+   header colors above. The rule precedes the hover and active rules, which
+   it ties on specificity, so they win when they apply. */
+nav.navbar.navbar-default .navbar-nav .nav-link:has(> .sieve-nav-optional),
+nav.navbar.navbar-inverse .navbar-nav .nav-link:has(> .sieve-nav-optional) {
+  color: var(--sieve-navbar-fg-optional);
+}
+nav.navbar.navbar-default .navbar-nav .nav-link:hover:has(> .sieve-nav-optional),
+nav.navbar.navbar-default .navbar-nav .nav-link:focus:has(> .sieve-nav-optional),
+nav.navbar.navbar-inverse .navbar-nav .nav-link:hover:has(> .sieve-nav-optional),
+nav.navbar.navbar-inverse .navbar-nav .nav-link:focus:has(> .sieve-nav-optional) {
+  color: var(--sieve-navbar-fg-hover);
+}
+nav.navbar.navbar-default .navbar-nav .nav-link.active:has(> .sieve-nav-optional),
+nav.navbar.navbar-inverse .navbar-nav .nav-link.active:has(> .sieve-nav-optional) {
+  color: var(--sieve-navbar-fg);
+}
+/* The accent. A lighter blue, #243e8b, is the
+   theme's primary color (links, buttons) and marks two more places: the
+   active sub-tab of a tabbed card carries a 3 px underline in it (an inset
+   shadow, so the tab's box does not change), and a value box is bordered
+   with it. On white the accent reads at 9.83 to 1. */
+.nav-tabs .nav-link.active {
+  box-shadow: inset 0 -3px 0 var(--sieve-accent);
+}
+.bslib-value-box {
+  border-color: var(--sieve-accent);
+}
+/* The value box title. bslib names the box bslib-value-box (the bare
+   value-box class belongs to no element it builds), so the rule keys on
+   that; a test checks every class this stylesheet names against the page. */
+.bslib-value-box .value-box-title { font-size: 0.85rem; }
+
+/* DataTables styled to mirror the Rmd: navy header with white text, warm
+   zebra striping, and a warm hover row. */
+table.dataTable td { font-variant-numeric: tabular-nums; }
+table.dataTable thead th {
+  background-color: var(--nd-navy);
+  color: #ffffff;
+  border-bottom: 2px solid var(--nd-metallic-gold);
+}
+table.dataTable tbody tr:nth-child(even) { background-color: #fafaf8; }
+table.dataTable tbody tr:hover { background-color: #f5f5f0; }
+
+/* The item grid's notice that the installed DT lacks the RowGroup extension
+   is read before the grid, not after it (Bootstrap 5 puts a caption below). */
+#ingest-type_grid table.dataTable > caption { caption-side: top; color: #7a4a00; white-space: normal; }
+
+/* The inline distribution sparkline cell. */
+table.dataTable td svg { vertical-align: middle; }
+
+/* Draggable column resizing (handle injected by sieve.js). Fixed layout so
+   header widths propagate to the body cells. */
+table.dataTable { table-layout: auto; }
+table.dataTable th, table.dataTable td { overflow: visible; }
+.col-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  user-select: none;
+}
+.col-resizer:hover { background-color: var(--nd-metallic-gold); }
+
+/* In-cell measurement-type and construct selectors. */
+select.sieve-cell {
+  width: 100%;
+  font-size: 0.85rem;
+  padding: 1px 4px;
+}
+
+/* A data table that is a flex fill item must never be crushed to nothing by
+   the prose above it in the same card: the card body scrolls instead. The
+   floor keeps every table workspace visible at laptop viewport heights; the
+   item pool, the primary workspace of the Items tab, gets a taller one. */
+.card-body .datatables.html-fill-item { min-height: 240px; }
+#winnow-pool.datatables { min-height: 460px; }
+
+/* The floor above keeps a table from being crushed; the rules below keep it
+   from being hidden. The page is a bslib fill layout, so every card, grid,
+   plot, and table stacked inside a card body is a flex item that shrinks to
+   share the height of the window. Two cards that each held a paragraph of
+   explanation and then a table were each squeezed to a body a few lines tall
+   with its own scroll bar, and the table sat below that fold: present in the
+   page, drawn at full width, and out of sight, with the next card drawn where
+   the table belonged (the invariance ladder and the bifactor index table are
+   the reported cases).
+
+   1. Content stacked with other content in a card body keeps at least its own
+      height, and the body it sits in, which already scrolls, is the one
+      scrolling region. It may still grow to use a tall window. The same holds
+      for a card written with two headers, which bslib builds as two bodies
+      sharing the card: each body keeps its height and the card scrolls. A
+      card that is alone in its sub-tab and has one body is left to fill the
+      sub-tab and scroll inside, so its header (and any button there) stays in
+      view above a long listing.
+   2. A table takes exactly the height of its rows: a DataTable in this app is
+      not in fill mode, so a taller box only adds blank space and a shorter
+      one spills the rows over whatever follows.
+   3. The tabbed card of a tab keeps a workable height when the explanation
+      above it is long (under the open accordion on the Content Validity tab
+      its body was 118 px tall in a 1600 by 1000 window and 32 px in a 1366
+      by 768 one); the main panel scrolls instead. */
+.card-body.html-fill-container > .html-fill-item:not(:only-child) { flex-shrink: 0; }
+/* bslib writes the flex of a card body as an inline style, hence !important. */
+.card:has(> .card-body ~ .card-body) > .card-body { flex-shrink: 0 !important; }
+.card-body .datatables.html-fill-item { flex: 0 0 auto; }
+/* Workspace questions and navigation also use vertical space. Keep a
+   usable table region beneath them; the main panel scrolls on short windows. */
+.main > .card.html-fill-item:has(> .tab-content) { min-height: 40rem; }
+
+/* Column headers wrap between words, with room for meaningful names. */
+table.dataTable th { word-break: normal; overflow-wrap: normal; hyphens: none; white-space: normal; min-width: 5rem; }
+/* Body cells normally wrap between words; the full-text rule below also
+   permits long identifiers to wrap inside narrow cells. */
+table.dataTable td { word-break: normal; overflow-wrap: normal; }
+
+/* Keyboard explanations use the same full text as pointer explanations. */
+.sieve-accessible-explanation {
+  position: fixed; z-index: 10000; max-width: min(420px, calc(100vw - 16px));
+  padding: .5rem .65rem; border: 1px solid #8a939d; border-radius: .25rem;
+  background: #fffef8; color: #162d49; box-shadow: 0 2px 8px #0003;
+  font-size: .85rem; white-space: normal; overflow-wrap: anywhere;
+  pointer-events: none;
+}
+table.dataTable [tabindex="0"]:focus-visible { outline: 2px solid #2878b5; outline-offset: -2px; }
+.col-resizer:focus-visible { background: #2878b5; outline: 2px solid #2878b5; }
+/* Theoretical is the initial route; server policy also guards every action. */
+body:not(.sieve-empirical) .sieve-optimizer-controls { display: none !important; }
+body:not(.sieve-empirical) a[data-value="optimize"] { display: none; }
+
+/* Width preferences represent border-box pixels for aligned headers and cells. */
+table.dataTable th, table.dataTable td { box-sizing: border-box !important; }
+/* Full wording remains readable when DT highlights a selected row. */
+table.dataTable tbody tr.selected, table.dataTable tbody tr.selected .text-muted {
+  color: #fff !important;
+}
+
+/* Project actions stay visible without taking a form's vertical margins.
+   Opening the browser-saving disclosure deliberately expands its explanation. */
+.sieve-project-name .form-group { margin-bottom: 0; }
+.sieve-project-name .form-control { min-height: 2rem; padding-top: .25rem; padding-bottom: .25rem; }
+.sieve-project-toolbar [role="status"] { margin-bottom: 0 !important; }
+.sieve-project-saving { margin-top: .15rem; }
+/* Tables display full cell text. Focus/hover explanations and resizing
+   provide additional context without hiding scientific values. */
+table.dataTable tbody td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* The single grid focus location remains visible without color alone. */
+table.dataTable td:focus, table.dataTable th:focus { outline: 2px solid currentColor; outline-offset: -2px; }
+
+/* Editing names needs room independent of the number of diagnostic columns. */
+#ingest-type_grid input[type="text"] { min-width: 12rem; }
+#ingest-type_grid select { min-width: 8rem; }
+#ingest-type_grid th { min-width: 7rem; }
+/* The Reverse? cell carries the item's range warning, a sentence; a wider
+   column keeps it to a few lines (with the system font it had wrapped to six
+   and left fewer than five rows of the grid in view). */
+#ingest-type_grid td.sieve-reverse-cell { min-width: 16rem; }
+.sieve-project-toolbar { padding: .25rem .5rem; font-size: .9rem; }
+.sieve-project-toolbar .form-group { margin-bottom: 0; }
+/* An empty output in the toolbar takes no height (the prepared copy appears
+   only after a Save), and an opened disclosure takes the full row. */
+.sieve-project-toolbar .shiny-html-output:empty { display: none; }
+.sieve-project-saving[open] { flex-basis: 100%; }
+
+/* Keep the scientific task visible; optional work stays in the More menu. */
+@media (max-width: 1599px) {
+  .navbar-brand small { display: none; }
+}
+.sieve-intro { margin-bottom: .5rem; }
+.sieve-intro > summary { cursor: pointer; font-weight: 600; }
+
+/* Keep item rows visible at laptop heights while preserving expandable help. */
+.sieve-item-workspace { gap: .5rem !important; padding: .75rem 1rem; }
+.sieve-item-workspace .accordion-button { padding: .5rem .75rem; }
+.sieve-item-workspace > .d-flex .form-group { margin-bottom: 0; }
+
+/* Full item names can wrap without pushing a short screening table below
+   its panel. Keep the reading line height and reduce only vertical padding. */
+#screen-itc_tbl table.dataTable tbody td {
+  padding-top: .25rem;
+  padding-bottom: .25rem;
+}
+
+/* Keep the complete invariance ladder in view. Full constraint descriptions
+   are available on each short rung label by pointer and keyboard focus. */
+#finalize-inv_tbl table.dataTable th {
+  min-width: 3rem;
+  font-size: .85rem;
+  padding: .4rem .35rem;
+}
+#finalize-inv_tbl table.dataTable tbody td {
+  white-space: nowrap;
+  padding: .4rem .35rem;
+}
+/* The units and eligibility reason are sentences. Give them a reading
+   width within the horizontally scrolling latent-mean table. */
+#finalize-inv_mean_contrasts table.dataTable td:nth-last-child(-n+2) {
+  min-width: 14rem;
+  overflow-wrap: normal;
+}
+
+/* Sentence columns need a reading width; otherwise a table's numeric
+   columns can squeeze a full explanation into dozens of one-word lines.
+   These tables scroll horizontally while retaining all text and values. */
+#screen-desc_tbl table.dataTable tbody td,
+#screen-case_grid table.dataTable tbody td,
+#screen-itc_tbl table.dataTable tbody td,
+#content-cvi_tbl table.dataTable tbody td,
+#cfa-compare_tests table.dataTable tbody td,
+#finalize-norms_uncertainty table.dataTable tbody td {
+  line-height: 1.3;
+  padding-top: .125rem;
+  padding-bottom: .125rem;
+}
+#screen-desc_tbl table.dataTable tbody td:nth-child(1) { min-width: 14rem; }
+#screen-desc_tbl table.dataTable tbody td:nth-child(2) { min-width: 18rem; }
+#screen-desc_tbl table.dataTable tbody td:nth-child(n+3):not(:last-child) { white-space: nowrap; }
+#screen-desc_tbl table.dataTable tbody td:last-child { min-width: 10rem; }
+#screen-case_grid table.dataTable tbody td { white-space: nowrap; }
+#screen-case_grid table.dataTable tbody td:nth-child(4),
+#screen-case_grid table.dataTable tbody td:nth-child(5) {
+  min-width: 14rem;
+  white-space: normal;
+}
+#screen-case_grid table.dataTable select { min-width: 7rem; }
+#screen-case_grid .dataTables_length label,
+#screen-case_grid .dataTables_filter label {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin-bottom: .3rem;
+}
+#screen-case_grid .dataTables_length select { display: inline-block; width: auto; margin: 0; }
+#screen-case_grid .dataTables_filter input { display: inline-block; width: min(12rem, 40vw); margin: 0; }
+#content-cvi_tbl table.dataTable tbody td:not(:last-child) { white-space: nowrap; }
+#content-cvi_tbl table.dataTable tbody td:last-child { min-width: 30rem; overflow-wrap: normal; }
+#cfa-compare_tests table.dataTable tbody td:nth-child(1) { min-width: 18rem; }
+#cfa-compare_tests table.dataTable tbody td:nth-child(2) { min-width: 14rem; }
+#cfa-compare_tests table.dataTable tbody td:nth-child(3) { min-width: 20rem; }
+#cfa-compare_tests table.dataTable tbody td:nth-child(n+4):nth-child(-n+6) { white-space: nowrap; }
+#cfa-compare_tests table.dataTable tbody td:nth-child(7) { min-width: 22rem; }
+#cfa-compare_tests table.dataTable tbody td:nth-child(8) { min-width: 32rem; }
+#finalize-norms_uncertainty table.dataTable tbody td:nth-child(-n+9) { white-space: nowrap; }
+#finalize-norms_uncertainty table.dataTable tbody td:nth-child(10) { min-width: 24rem; overflow-wrap: normal; }
+#finalize-norms_uncertainty table.dataTable tbody td:nth-child(11) { min-width: 8rem; }
+
+/* The five workspaces (fct_workspaces.R): the question each answers, and on
+   Study the goal choice, in one compact line above the page tabs. */
+.sieve-workspace-head { border-bottom: 1px solid #e5e7eb; background: var(--sieve-tint, #fffef8); }
+.sieve-workspace-question { font-weight: 600; color: #0c2340; }
+.sieve-study-goal .form-group { margin-bottom: 0; }
+.sieve-workspace-head + .nav-underline, .sieve-workspace-head + div > .nav-underline { padding-left: 0.75rem; }
+
+/* Workspace pages use dark text on the light page background. */
+ul[id^="ws_"] .nav-link { color: #374151; }
+ul[id^="ws_"] .nav-link:has(> .sieve-nav-optional) { color: #667085; }
+ul[id^="ws_"] .nav-link:hover,
+ul[id^="ws_"] .nav-link:focus-visible { color: #243e8b; }
+ul[id^="ws_"] .nav-link.active { color: #0c2340; }
+
+/* Each workspace passes its available height to its pages. The underline
+   navset otherwise grows to its content and moves tables below the window. */
+.sieve-workspace-head + .tabbable {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.sieve-workspace-head + .tabbable > .nav { flex-shrink: 0; }
+.sieve-workspace-head + .tabbable > .tab-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.sieve-workspace-head + .tabbable > .tab-content > .tab-pane.active {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+/* Screening has no sidebar. Keep its table region tall enough for the
+   primary item pool; the workspace page scrolls when the window is shorter. */
+.tab-pane[data-value="screen"] > .card:has(> .tab-content) { min-height: 40rem; }
+/* Editable item and role rows include their response and type explanations. */
+.tab-pane[data-value="ingest"] .main > .card.html-fill-item:has(> .tab-content) { min-height: 48rem; }
+
+/* Put each record's raw estimate and interval in view together. Full stored
+   columns remain available in the optional complete table. */
+.sieve-saved-results { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
+.sieve-saved-record { flex: 1 1 480px; min-width: 0; }
+.sieve-saved-compact table { table-layout: fixed; width: 100%; }
+.sieve-saved-compact th:first-child, .sieve-saved-compact td:first-child { width: 42%; }
+.sieve-saved-compact th, .sieve-saved-compact td { white-space: normal; overflow-wrap: anywhere; vertical-align: top; }
+.sieve-saved-compact th:not(:first-child), .sieve-saved-compact td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Where a result stands, in one word at the start of its status line, in the
+   same colors on every page (fct_item_decision.R, sieve_lifecycle_badge()). */
+.sieve-lifecycle { display: inline-block; padding: 0.1rem 0.5rem; margin-right: 0.45rem; border-radius: 1rem;
+  font-size: 0.78em; font-weight: 600; letter-spacing: 0.01em; line-height: 1.4; vertical-align: baseline;
+  white-space: nowrap; color: #ffffff; background: #5c6670; }
+.sieve-lifecycle-current { background: #00843d; }
+.sieve-lifecycle-running, .sieve-lifecycle-refitting { background: #0c2340; }
+.sieve-lifecycle-stale, .sieve-lifecycle-settings, .sieve-lifecycle-stopped { background: #ae9142; color: #0c2340; }
+.sieve-lifecycle-failed { background: #a4001e; }
+.sieve-lifecycle-not_run, .sieve-lifecycle-blocked { background: #5c6670; }
+/* The button and sentence beside an item table (CFA Estimates, EFA Pattern and Structure). */
+.sieve-item-decision .btn { white-space: nowrap; }
+.sieve-item-decision span { flex: 1 1 24rem; min-width: 0; }
+
+
+/* The EFA page's display controls in one row, labels beside their selects.
+   Item names keep wrapping: on one line they would push the communalities
+   table past its box at 1600 pixels. */
+.sieve-efa-display .form-group { display: flex; align-items: center; gap: .4rem; margin-bottom: 0; }
+.sieve-efa-display .form-group > label { margin-bottom: 0; white-space: nowrap; }
+/* The EFA page's nine result sub-tabs, compact (they still take two rows at 1600 pixels). */
+.tab-pane[data-value="efa"] .card-header .nav-tabs .nav-link { padding: .3rem .55rem; font-size: .875rem; }
+
+/* The status line of a page (sieve_status_line(), fct_page_layout.R): a
+   sentence in normal text at line height 1.5 with a colored left border,
+   rather than a bold badge of line height 1. Dark text on white:
+   #212529 is 15.4 to 1; the borders are decoration, the words carry the
+   state. The Update line of a page with results from before
+   (fct_page_update.R) is a yellow warning alert of class
+   sieve-update-line, which this rule does not touch. */
+.sieve-status-line { display: block; flex: 1 1 28rem; min-width: 0; font-size: 0.9rem; line-height: 1.5;
+  font-weight: 400; color: #212529; background: #ffffff; border-left: 4px solid #5c6670;
+  padding: 0.3rem 0.65rem; border-radius: 0.25rem; }
+.sieve-status-success { border-left-color: #0f5132; }
+.sieve-status-warning { border-left-color: #ae9142; }
+.sieve-status-danger { border-left-color: #a4001e; }
+.sieve-status-notes { padding-left: 1.1rem; margin-top: 0.2rem; font-size: 0.85rem; }
+.sieve-status-notes li + li { margin-top: 0.1rem; }
+
+/* The Confirm button in its confirmed state is disabled, and Bootstrap's
+   disabled opacity of .65 left white on #0a843d at 2.64 to 1. The state is
+   drawn opaque on a darker green: white on #0f5132 is 9.4 to 1. */
+.btn.sieve-confirmed-state:disabled, .btn.sieve-confirmed-state.disabled {
+  opacity: 1; color: #ffffff; background-color: #0f5132; border-color: #0f5132; }
+
+/* The provenance of a result (sieve_method_line()): the full method,
+   missing-data and uncertainty statement behind a labeled disclosure under
+   the one-line headline. */
+.sieve-provenance > summary { cursor: pointer; color: #0c2340; text-decoration: underline dotted; }
+.sieve-provenance[open] > summary { margin-bottom: 0.2rem; }
+
+/* The notification panel (sieve_notify()): bslib fixes it at 450 pixels
+   with 2rem of padding, 59 percent of a 760 pixel window; here it is
+   narrower, holds at most 40 percent of the window's height, and scrolls
+   beyond that. */
+#shiny-notification-panel#shiny-notification-panel { width: min(400px, calc(100vw - 2rem)); max-height: 40vh; overflow-y: auto; }
+.shiny-notification.shiny-notification { padding: 0.75rem 2rem 0.75rem 1rem; margin: 0.5rem; }
+.shiny-notification-close:focus-visible { outline: 2px solid #0c2340; outline-offset: 2px; }

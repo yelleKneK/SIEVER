@@ -1,0 +1,82 @@
+name: R-CMD-check
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portable-development-check:
+    name: Development check (${{ matrix.os }}, R ${{ matrix.r }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # The last two rows check R 4.1, the floor DESCRIPTION declares, which
+        # CRAN does not check, and the previous R release (oldrel-1, CRAN's
+        # oldrel). They install the hard dependencies and what the check
+        # itself needs (testthat, knitr, rmarkdown), not every optional
+        # package, and do not force the optional ones, so a test or vignette
+        # that needs a missing optional package must skip rather than fail.
+        include:
+          - {os: macos-latest, r: release}
+          - {os: windows-latest, r: release}
+          - {os: ubuntu-latest, r: devel}
+          - {os: ubuntu-latest, r: '4.1', dependencies: '"hard"', force_suggests: 'false'}
+          - {os: ubuntu-latest, r: 'oldrel-1', dependencies: '"hard"', force_suggests: 'false'}
+    env:
+      PROCESSX_NOTIFY_OLD_SIGCHLD: '1'
+      _R_CHECK_FORCE_SUGGESTS_: ${{ matrix.force_suggests || 'true' }}
+      _R_CHECK_CRAN_INCOMING_: 'true'
+      R_KEEP_PKG_SOURCE: 'yes'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.r }}
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          dependencies: ${{ matrix.dependencies || '"all"' }}
+          extra-packages: |
+            any::rcmdcheck
+            any::testthat
+            any::knitr
+            any::rmarkdown
+          needs: check
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          # TeX is not provisioned here, so the manual is checked by the job below.
+          args: 'c("--as-cran", "--no-manual")'
+          build_args: 'character()'
+          upload-results: 'true'
+          upload-snapshots: 'always'
+  full-manual-check:
+    name: Check with both manuals (Linux release)
+    runs-on: ubuntu-latest
+    env:
+      PROCESSX_NOTIFY_OLD_SIGCHLD: '1'
+      _R_CHECK_FORCE_SUGGESTS_: 'true'
+      _R_CHECK_CRAN_INCOMING_: 'true'
+      R_KEEP_PKG_SOURCE: 'yes'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+      - name: Provision system TeX, qpdf and HTML Tidy
+        run: sudo apt-get update && sudo apt-get install -y texlive-latex-base texlive-latex-recommended texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra qpdf tidy
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          args: 'c("--as-cran")'
+          build_args: 'character()'
+          upload-results: 'true'

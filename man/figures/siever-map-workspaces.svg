@@ -1,0 +1,235 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1629" viewBox="0 0 1600 1629" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0c2340"/></marker>
+    <marker id="arrowgreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0a843d"/></marker>
+    <marker id="arrowgrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#7a7a7a"/></marker>
+  </defs>
+  <rect width="1600" height="1629" fill="#fffef8"/>
+  <text x="800.0" y="44" text-anchor="middle" font-size="26" font-weight="bold" fill="#0c2340">How SIEVER Works in Five Workspaces: Five Questions, the Same Pages</text>
+  <text x="800.0" y="68" text-anchor="middle" font-size="14" fill="#444">Opened with SIEVER::run_app(): the pages grouped by the question each answers (sixteen pages, with Scoring and Norms inside Reliability); one shared study record keeps data, decisions and results together.</text>
+  <rect x="40" y="95" width="1520" height="248" rx="10" fill="#fff8e6" stroke="#d39f10" stroke-width="1.5"/>
+  <text x="56" y="116" text-anchor="start" font-size="13" font-weight="bold" fill="#7a5f0e">0. HOW TO OPEN IT: SIEVER runs on your computer, in your browser (R 4.1 or later)</text>
+  <rect x="60" y="127" width="400" height="204" rx="8" fill="#ffffff" stroke="#c9b26a" stroke-width="1.5"/>
+  <text x="260.0" y="149" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">Install once</text>
+  <text x="76" y="173" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve">install.packages("SIEVER")</text>
+  <text x="76" y="191" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve"># DMAR, its engine, comes from CRAN with it</text>
+  <text x="76" y="227" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve"># or the archive of a release, from GitHub,</text>
+  <text x="76" y="245" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve"># github.com/yelleKneK/SIEVER/releases:</text>
+  <text x="76" y="263" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve">remotes::install_url("&lt;its .tar.gz link&gt;")</text>
+  <text x="76" y="299" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve"># an optional feature names what it needs,</text>
+  <text x="76" y="317" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve"># for example haven for an SPSS file</text>
+  <rect x="480" y="127" width="440" height="204" rx="8" fill="#ffffff" stroke="#c9b26a" stroke-width="1.5"/>
+  <text x="700.0" y="149" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">Open the app</text>
+  <text x="496" y="173" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve">library(SIEVER)</text>
+  <text x="496" y="191" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve">run_app()                # the five workspaces</text>
+  <text x="496" y="209" text-anchor="start" font-size="12.5" font-weight="bold" fill="#0c2340" font-family="Menlo, Consolas, monospace" xml:space="preserve">run_app(options = list(port = 7654))</text>
+  <text x="496" y="227" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve"># or SIEVER::run_app(...) without library(SIEVER)</text>
+  <text x="496" y="263" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve"># the articles, from R:</text>
+  <text x="496" y="281" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve">vignette("user-guide", package = "SIEVER")</text>
+  <text x="496" y="299" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve">vignette("getting-started", package = "SIEVER")</text>
+  <text x="496" y="317" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve">?SIEVER     # the help page, with this map</text>
+  <rect x="940" y="127" width="600" height="204" rx="8" fill="#ffffff" stroke="#c9b26a" stroke-width="1.5"/>
+  <text x="1240.0" y="149" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">The options you can set</text>
+  <text x="956" y="173" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve"># arguments of run_app()</text>
+  <text x="956" y="191" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve">options = list(port = 7654, launch.browser = TRUE)</text>
+  <text x="956" y="209" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve">onStart, enableBookmarking, uiPattern    # to shinyApp()</text>
+  <text x="956" y="245" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve"># options(), set before run_app(); each has a default</text>
+  <text x="956" y="263" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve">sieve.rmsea_conf_level = 0.95   # RMSEA intervals; default 0.90</text>
+  <text x="956" y="281" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve">sieve.cores = 4                 # workers; else SIEVER_CORES</text>
+  <text x="956" y="299" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve">sieve.auto_run = "never"        # nothing runs unasked; or "always"</text>
+  <text x="956" y="317" text-anchor="start" font-size="12.5" fill="#333" font-family="Menlo, Consolas, monospace" xml:space="preserve">sieve.memory_limit, sieve.wlsmv_limit, sieve.efa_memory   # bytes</text>
+  <g transform="translate(0, 266)">
+  <rect x="40" y="95" width="1520" height="490" rx="10" fill="#eef3ee" stroke="#0a843d" stroke-width="1.5"/>
+  <text x="56" y="116" text-anchor="start" font-size="13" font-weight="bold" fill="#0a5c2b">1. THE ARRANGEMENT, opened with SIEVER::run_app(): five workspaces, each answering one question; its pages are its sub-tabs</text>
+  <rect x="60" y="129" width="280" height="420" rx="10" fill="#ffffff" stroke="#0c2340" stroke-width="2"/>
+  <text x="200.0" y="153" text-anchor="middle" font-size="17" font-weight="bold" fill="#0c2340">Study</text>
+  <text x="200.0" y="173" text-anchor="middle" font-size="11.5" fill="#444" font-style="italic">What are the items and the data,</text>
+  <text x="200.0" y="188" text-anchor="middle" font-size="11.5" fill="#444" font-style="italic">and are they ready to analyze?</text>
+  <rect x="72" y="201" width="256" height="56" rx="6" fill="#ffffff" stroke="#0a843d" stroke-width="1.5"/>
+  <text x="200.0" y="218" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">Ingest</text>
+  <text x="200.0" y="233" text-anchor="middle" font-size="10.8" fill="#444">roles, types, the ledger; step 4:</text>
+  <text x="200.0" y="247" text-anchor="middle" font-size="10.8" fill="#444">estimator, sampling design, Confirm</text>
+  <rect x="72" y="263" width="256" height="56" rx="6" fill="#ffffff" stroke="#7a7a7a" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="200.0" y="280" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">Content Validity (optional)</text>
+  <text x="200.0" y="295" text-anchor="middle" font-size="10.8" fill="#444">expert ratings of relevance,</text>
+  <text x="200.0" y="309" text-anchor="middle" font-size="10.8" fill="#444">before any respondent data</text>
+  <rect x="72" y="325" width="256" height="56" rx="6" fill="#ffffff" stroke="#0a843d" stroke-width="1.5"/>
+  <text x="200.0" y="342" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">Screening</text>
+  <text x="200.0" y="357" text-anchor="middle" font-size="10.8" fill="#444">response screens; removal by</text>
+  <text x="200.0" y="371" text-anchor="middle" font-size="10.8" fill="#444">identifier (#17 for a row); reservation</text>
+  <rect x="360" y="129" width="280" height="420" rx="10" fill="#ffffff" stroke="#0c2340" stroke-width="2"/>
+  <text x="500.0" y="153" text-anchor="middle" font-size="17" font-weight="bold" fill="#0c2340">Structure</text>
+  <text x="500.0" y="173" text-anchor="middle" font-size="11.5" fill="#444" font-style="italic">How many dimensions are there,</text>
+  <text x="500.0" y="188" text-anchor="middle" font-size="11.5" fill="#444" font-style="italic">and which items measure them?</text>
+  <rect x="372" y="201" width="256" height="44" rx="6" fill="#ffffff" stroke="#0a843d" stroke-width="1.5"/>
+  <text x="500.0" y="218" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">Dimensionality</text>
+  <text x="500.0" y="233" text-anchor="middle" font-size="10.8" fill="#444">scree, PA, VSS, fit by k</text>
+  <rect x="372" y="251" width="256" height="44" rx="6" fill="#ffffff" stroke="#0a843d" stroke-width="1.5"/>
+  <text x="500.0" y="268" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">EFA</text>
+  <text x="500.0" y="283" text-anchor="middle" font-size="10.8" fill="#444">ML, oblimin; pattern, structure, Phi</text>
+  <rect x="372" y="301" width="256" height="44" rx="6" fill="#ffffff" stroke="#0a843d" stroke-width="1.5"/>
+  <text x="500.0" y="318" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">Items</text>
+  <text x="500.0" y="333" text-anchor="middle" font-size="10.8" fill="#444">live diagnostics, decisions</text>
+  <rect x="372" y="351" width="256" height="44" rx="6" fill="#ffffff" stroke="#7a7a7a" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="500.0" y="368" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">Optimizer (optional)</text>
+  <text x="500.0" y="383" text-anchor="middle" font-size="10.8" fill="#444">item sets under constraints</text>
+  <rect x="372" y="401" width="256" height="44" rx="6" fill="#ffffff" stroke="#0a843d" stroke-width="2.5"/>
+  <text x="500.0" y="418" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">CFA</text>
+  <text x="500.0" y="433" text-anchor="middle" font-size="10.8" fill="#444">fit, Phi, MIs, path diagram</text>
+  <rect x="372" y="451" width="256" height="44" rx="6" fill="#ffffff" stroke="#7a7a7a" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="500.0" y="468" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">Bifactor (optional)</text>
+  <text x="500.0" y="483" text-anchor="middle" font-size="10.8" fill="#444">ECV, omegaH, PUC, H</text>
+  <rect x="372" y="501" width="256" height="44" rx="6" fill="#ffffff" stroke="#d39f10" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="500.0" y="518" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">Network (optional)</text>
+  <text x="500.0" y="533" text-anchor="middle" font-size="10.8" fill="#444">searches in their own R process, Cancel</text>
+  <rect x="660" y="129" width="280" height="420" rx="10" fill="#ffffff" stroke="#0c2340" stroke-width="2"/>
+  <text x="800.0" y="153" text-anchor="middle" font-size="17" font-weight="bold" fill="#0c2340">Scores</text>
+  <text x="800.0" y="173" text-anchor="middle" font-size="11.5" fill="#444" font-style="italic">How is each score formed,</text>
+  <text x="800.0" y="188" text-anchor="middle" font-size="11.5" fill="#444" font-style="italic">and how precise is it?</text>
+  <rect x="672" y="201" width="256" height="56" rx="6" fill="#ffffff" stroke="#0a843d" stroke-width="1.5"/>
+  <text x="800.0" y="218" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">Reliability</text>
+  <text x="800.0" y="233" text-anchor="middle" font-size="10.8" fill="#444">omega with CI, H, factor scores,</text>
+  <text x="800.0" y="247" text-anchor="middle" font-size="10.8" fill="#444">the operational score in force</text>
+  <rect x="672" y="263" width="256" height="56" rx="6" fill="#ffffff" stroke="#0a843d" stroke-width="1.5"/>
+  <text x="800.0" y="280" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">  Scoring and Norms (Sub-Tab)</text>
+  <text x="800.0" y="295" text-anchor="middle" font-size="10.8" fill="#444">a Reliability sub-tab; open it</text>
+  <text x="800.0" y="309" text-anchor="middle" font-size="10.8" fill="#444">from Scores; no split needed</text>
+  <rect x="672" y="325" width="256" height="56" rx="6" fill="#ffffff" stroke="#7a7a7a" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="800.0" y="342" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">IRT (optional)</text>
+  <text x="800.0" y="357" text-anchor="middle" font-size="10.8" fill="#444">graded response model</text>
+  <rect x="960" y="129" width="280" height="420" rx="10" fill="#ffffff" stroke="#0c2340" stroke-width="2"/>
+  <text x="1100.0" y="153" text-anchor="middle" font-size="17" font-weight="bold" fill="#0c2340">Evidence</text>
+  <text x="1100.0" y="173" text-anchor="middle" font-size="11.5" fill="#444" font-style="italic">What do the scores relate to, and do they mean</text>
+  <text x="1100.0" y="188" text-anchor="middle" font-size="11.5" fill="#444" font-style="italic">the same thing across groups and samples?</text>
+  <rect x="972" y="201" width="256" height="56" rx="6" fill="#ffffff" stroke="#0a843d" stroke-width="1.5"/>
+  <text x="1100.0" y="218" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">Validity</text>
+  <text x="1100.0" y="233" text-anchor="middle" font-size="10.8" fill="#444">AVE, HTMT, criteria, CMV,</text>
+  <text x="1100.0" y="247" text-anchor="middle" font-size="10.8" fill="#444">latent boundaries</text>
+  <rect x="972" y="263" width="256" height="56" rx="6" fill="#ffffff" stroke="#0a843d" stroke-width="1.5"/>
+  <text x="1100.0" y="280" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">CV and Invariance</text>
+  <text x="1100.0" y="295" text-anchor="middle" font-size="10.8" fill="#444">split, holdout of the CFA page's</text>
+  <text x="1100.0" y="309" text-anchor="middle" font-size="10.8" fill="#444">model, the invariance ladder</text>
+  <rect x="972" y="325" width="256" height="56" rx="6" fill="#ffffff" stroke="#7a7a7a" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="1100.0" y="342" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">SEM (optional)</text>
+  <text x="1100.0" y="357" text-anchor="middle" font-size="10.8" fill="#444">structural paths, Monte Carlo CIs</text>
+  <rect x="1260" y="129" width="280" height="420" rx="10" fill="#ffffff" stroke="#0c2340" stroke-width="2"/>
+  <text x="1400.0" y="153" text-anchor="middle" font-size="17" font-weight="bold" fill="#0c2340">Report</text>
+  <text x="1400.0" y="173" text-anchor="middle" font-size="11.5" fill="#444" font-style="italic">What was done, and</text>
+  <text x="1400.0" y="188" text-anchor="middle" font-size="11.5" fill="#444" font-style="italic">how can it be reproduced?</text>
+  <rect x="1272" y="201" width="256" height="56" rx="6" fill="#ffffff" stroke="#0a843d" stroke-width="1.5"/>
+  <text x="1400.0" y="218" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0c2340">Reproducible Code</text>
+  <text x="1400.0" y="233" text-anchor="middle" font-size="10.8" fill="#444">Report saved analyses (runs nothing),</text>
+  <text x="1400.0" y="247" text-anchor="middle" font-size="10.8" fill="#444">the methods draft, the session script</text>
+  <line x1="340" y1="161" x2="360" y2="161" stroke="#0a843d" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="640" y1="161" x2="660" y2="161" stroke="#0a843d" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="940" y1="161" x2="960" y2="161" stroke="#0a843d" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="1240" y1="161" x2="1260" y2="161" stroke="#0a843d" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <text x="60" y="573" text-anchor="start" font-size="11.5" fill="#333">Every page is in exactly one workspace (a test pins it); a dashed box is optional; Ingest and Screening come first; a known structure goes from Study to CFA directly.</text>
+  <line x1="800" y1="585" x2="800" y2="609" stroke="#0c2340" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="40" y="609" width="1520" height="140" rx="10" fill="#e8edf5" stroke="#0c2340" stroke-width="2"/>
+  <text x="56" y="630" text-anchor="start" font-size="13" font-weight="bold" fill="#0c2340">2. THE SHARED STATE (sieve_new_state): one reactiveValues store read by every page</text>
+  <rect x="60" y="643" width="420" height="92" rx="8" fill="#ffffff" stroke="#0c2340" stroke-width="2"/>
+  <text x="270.0" y="665" text-anchor="middle" font-size="15" font-weight="bold" fill="#0c2340">$meta, the item ledger (the spine)</text>
+  <text x="270.0" y="683" text-anchor="middle" font-size="11.5" fill="#333">one row per item: item, label, construct, facet,</text>
+  <text x="270.0" y="699" text-anchor="middle" font-size="11.5" fill="#333">type, status (included or excluded), reverse</text>
+  <text x="270.0" y="715" text-anchor="middle" font-size="11.0" fill="#555">items are excluded, never destroyed; labels are not analytic</text>
+  <rect x="510" y="643" width="320" height="92" rx="8" fill="#ffffff" stroke="#0c2340" stroke-width="1.5"/>
+  <text x="670.0" y="665" text-anchor="middle" font-size="15" font-weight="bold" fill="#0c2340">$items on the rows in the analysis</text>
+  <text x="670.0" y="683" text-anchor="middle" font-size="11.5" fill="#333">after reverse scoring; $raw as loaded;</text>
+  <text x="670.0" y="699" text-anchor="middle" font-size="11.5" fill="#333">$case_index names the original rows;</text>
+  <text x="670.0" y="715" text-anchor="middle" font-size="11.0" fill="#555">removed and reserved respondents are kept</text>
+  <rect x="860" y="643" width="320" height="92" rx="8" fill="#ffffff" stroke="#0c2340" stroke-width="1.5"/>
+  <text x="1020.0" y="665" text-anchor="middle" font-size="15" font-weight="bold" fill="#0c2340">The study's settings</text>
+  <text x="1020.0" y="683" text-anchor="middle" font-size="11.5" fill="#333">confirmed; the estimator and the sampling</text>
+  <text x="1020.0" y="699" text-anchor="middle" font-size="11.5" fill="#333">design, both declared on Ingest, step 4;</text>
+  <text x="1020.0" y="715" text-anchor="middle" font-size="11.0" fill="#555">thresholds, palette, holdout reservation</text>
+  <rect x="1210" y="643" width="330" height="92" rx="8" fill="#ffffff" stroke="#0c2340" stroke-width="1.5"/>
+  <text x="1375.0" y="665" text-anchor="middle" font-size="15" font-weight="bold" fill="#0c2340">Two identities</text>
+  <text x="1375.0" y="683" text-anchor="middle" font-size="11.5" fill="#333">the analytic ledger key and the data key say</text>
+  <text x="1375.0" y="699" text-anchor="middle" font-size="11.5" fill="#333">exactly what a result was computed from,</text>
+  <text x="1375.0" y="715" text-anchor="middle" font-size="11.0" fill="#555">so an edit marks every dependent result as from before</text>
+  <line x1="800" y1="749" x2="800" y2="773" stroke="#0c2340" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="40" y="773" width="1520" height="182" rx="10" fill="#f6f1e1" stroke="#c9b26a" stroke-width="1"/>
+  <text x="56" y="794" text-anchor="start" font-size="13" font-weight="bold" fill="#7a5f0e">3. THE SHARED SERVICES every analysis page goes through</text>
+  <rect x="60" y="807" width="285" height="136" rx="8" fill="#ffffff" stroke="#ae9142" stroke-width="1.5"/>
+  <text x="202.5" y="829" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">Specification</text>
+  <text x="202.5" y="847" text-anchor="middle" font-size="11.5" fill="#333">fct_spec, fct_models, fct_names: syntax,</text>
+  <text x="202.5" y="863" text-anchor="middle" font-size="11.5" fill="#333">estimator, missing data, factor variances = 1,</text>
+  <text x="202.5" y="879" text-anchor="middle" font-size="11.5" fill="#333">ordered indicators; every fit returns a status:</text>
+  <text x="202.5" y="895" text-anchor="middle" font-size="11.5" fill="#333">ok, inadmissible, not identified, not converged</text>
+  <rect x="365" y="807" width="300" height="136" rx="8" fill="#ffffff" stroke="#ae9142" stroke-width="1.5"/>
+  <text x="515.0" y="829" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">The run policy (sieve_demand_wire)</text>
+  <text x="515.0" y="847" text-anchor="middle" font-size="11.5" fill="#333">Load and Confirm fit nothing. A first</text>
+  <text x="515.0" y="863" text-anchor="middle" font-size="11.5" fill="#333">result runs on its own page only when</text>
+  <text x="515.0" y="879" text-anchor="middle" font-size="11.5" fill="#333">estimated at two seconds or less; otherwise</text>
+  <text x="515.0" y="895" text-anchor="middle" font-size="11.5" fill="#333">its button states the wait. Inclusion changes</text>
+  <text x="515.0" y="911" text-anchor="middle" font-size="11.5" fill="#333">refit results already requested. Long searches</text>
+  <text x="515.0" y="927" text-anchor="middle" font-size="11.5" fill="#333">run in their own R process and can be canceled.</text>
+  <rect x="685" y="807" width="270" height="136" rx="8" fill="#ffffff" stroke="#ae9142" stroke-width="1.5"/>
+  <text x="820.0" y="829" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">The fit store and the basis</text>
+  <text x="820.0" y="847" text-anchor="middle" font-size="11.5" fill="#333">the identical model on identical data, fit on</text>
+  <text x="820.0" y="863" text-anchor="middle" font-size="11.5" fill="#333">one page, reused on another by exact identity;</text>
+  <text x="820.0" y="879" text-anchor="middle" font-size="11.5" fill="#333">one correlation matrix (Pearson, polychoric,</text>
+  <text x="820.0" y="895" text-anchor="middle" font-size="11.5" fill="#333">mixed) per item pool, shared by four pages</text>
+  <rect x="975" y="807" width="270" height="136" rx="8" fill="#ffffff" stroke="#ae9142" stroke-width="1.5"/>
+  <text x="1110.0" y="829" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">The page guide and layout</text>
+  <text x="1110.0" y="847" text-anchor="middle" font-size="11.5" fill="#333">the same guide on every page (what is needed,</text>
+  <text x="1110.0" y="863" text-anchor="middle" font-size="11.5" fill="#333">which results are current); results first:</text>
+  <text x="1110.0" y="879" text-anchor="middle" font-size="11.5" fill="#333">status line, a method line read from the held</text>
+  <text x="1110.0" y="895" text-anchor="middle" font-size="11.5" fill="#333">result, the result, then the explanation</text>
+  <rect x="1265" y="807" width="275" height="136" rx="8" fill="#ffffff" stroke="#ae9142" stroke-width="1.5"/>
+  <text x="1402.5" y="829" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">Show code</text>
+  <text x="1402.5" y="847" text-anchor="middle" font-size="11.5" fill="#333">every result's panel shows the recorded calls,</text>
+  <text x="1402.5" y="863" text-anchor="middle" font-size="11.5" fill="#333">copies them, or downloads the analysis as a</text>
+  <text x="1402.5" y="879" text-anchor="middle" font-size="11.5" fill="#333">bundle (code, README, the input view when</text>
+  <text x="1402.5" y="895" text-anchor="middle" font-size="11.5" fill="#333">shared); opening a panel runs nothing</text>
+  <g transform="translate(0, 16)">
+  <text x="60" y="961" text-anchor="start" font-size="12" fill="#333">Engines in the house order: DMAR first, then lavaan, then psych; psychonetrics, qgraph and igraph for Network only. Pages share the same study and analysis records.</text>
+  <text x="60" y="983" text-anchor="start" font-size="12" fill="#333">Every page: the same gate (data loaded, study confirmed), the same estimator rule and sampling declaration, the same identification (factor variances fixed at 1), full precision stored</text>
+  <text x="60" y="1002" text-anchor="start" font-size="12" fill="#333">and rounded only on display, a confidence interval wherever the method supports one, and an explanation beside the result with the detail and citations one click away.</text>
+  <text x="60" y="1021" text-anchor="start" font-size="12" fill="#333">Fit indices are DMAR's: one SRMR, of the covariance residuals alone, on every page, and every RMSEA interval at 90 percent unless options(sieve.rmsea_conf_level) says otherwise.</text>
+  </g>
+  <g transform="translate(0, 35)">
+  <line x1="800" y1="1011" x2="800" y2="1029" stroke="#0c2340" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="40" y="1029" width="1520" height="118" rx="10" fill="#f1ecf5" stroke="#7a5f9a" stroke-width="1"/>
+  <text x="56" y="1050" text-anchor="start" font-size="13" font-weight="bold" fill="#4d3a6b">4. THE RECORDS every run writes (nothing is reported that was not run)</text>
+  <rect x="60" y="1063" width="300" height="72" rx="8" fill="#ffffff" stroke="#7a5f9a" stroke-width="1.5"/>
+  <text x="210.0" y="1085" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">Decisions</text>
+  <text x="210.0" y="1103" text-anchor="middle" font-size="11.5" fill="#333">factor count, inclusion, assignments,</text>
+  <text x="210.0" y="1119" text-anchor="middle" font-size="11.5" fill="#333">each with the researcher's reason</text>
+  <rect x="380" y="1063" width="380" height="72" rx="8" fill="#ffffff" stroke="#7a5f9a" stroke-width="1.5"/>
+  <text x="570.0" y="1085" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">The analysis registry</text>
+  <text x="570.0" y="1103" text-anchor="middle" font-size="11.5" fill="#333">one record per run: specification, input revision, stored</text>
+  <text x="570.0" y="1119" text-anchor="middle" font-size="11.5" fill="#333">results at full precision, status, n used, engine identities</text>
+  <rect x="780" y="1063" width="380" height="72" rx="8" fill="#ffffff" stroke="#7a5f9a" stroke-width="1.5"/>
+  <text x="970.0" y="1085" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">The code log and the replay store</text>
+  <text x="970.0" y="1103" text-anchor="middle" font-size="11.5" fill="#333">every consequential action as an annotated, runnable step</text>
+  <text x="970.0" y="1119" text-anchor="middle" font-size="11.5" fill="#333">of R; one content-addressed copy of each input it ran on</text>
+  <rect x="1180" y="1063" width="360" height="72" rx="8" fill="#ffffff" stroke="#7a5f9a" stroke-width="1.5"/>
+  <text x="1360.0" y="1085" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">The methods registry</text>
+  <text x="1360.0" y="1103" text-anchor="middle" font-size="11.5" fill="#333">a verified citation behind each method (DOI checked),</text>
+  <text x="1360.0" y="1119" text-anchor="middle" font-size="11.5" fill="#333">so a report cites only what ran</text>
+  <line x1="800" y1="1147" x2="800" y2="1171" stroke="#0c2340" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="40" y="1171" width="1520" height="112" rx="10" fill="#e8edf5" stroke="#1c4f8f" stroke-width="1"/>
+  <text x="56" y="1192" text-anchor="start" font-size="13" font-weight="bold" fill="#1c4f8f">5. WHAT COMES OUT: the Report workspace (Reproducible Code), the project file, the exports, the API</text>
+  <rect x="60" y="1205" width="400" height="66" rx="8" fill="#ffffff" stroke="#1c4f8f" stroke-width="1.5"/>
+  <text x="260.0" y="1227" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">Reproducible Code</text>
+  <text x="260.0" y="1245" text-anchor="middle" font-size="11.5" fill="#333">Report saved analyses (chosen in the list or the catalog; runs</text>
+  <text x="260.0" y="1261" text-anchor="middle" font-size="11.5" fill="#333">nothing), the optional methods draft, the session script</text>
+  <rect x="480" y="1205" width="330" height="66" rx="8" fill="#ffffff" stroke="#1c4f8f" stroke-width="1.5"/>
+  <text x="645.0" y="1227" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">The project file</text>
+  <text x="645.0" y="1245" text-anchor="middle" font-size="11.5" fill="#333">data, ledger, transformations, decisions, registry,</text>
+  <text x="645.0" y="1261" text-anchor="middle" font-size="11.5" fill="#333">replay store; a reopened project waits on every page</text>
+  <rect x="830" y="1205" width="330" height="66" rx="8" fill="#ffffff" stroke="#1c4f8f" stroke-width="1.5"/>
+  <text x="995.0" y="1227" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">Exports</text>
+  <text x="995.0" y="1245" text-anchor="middle" font-size="11.5" fill="#333">the data file and its specification, which re-enter</text>
+  <text x="995.0" y="1261" text-anchor="middle" font-size="11.5" fill="#333">Ingest; the moments of the included items</text>
+  <rect x="1180" y="1205" width="360" height="66" rx="8" fill="#ffffff" stroke="#1c4f8f" stroke-width="1.5"/>
+  <text x="1360.0" y="1227" text-anchor="middle" font-size="14" font-weight="bold" fill="#0c2340">The headless API</text>
+  <text x="1360.0" y="1245" text-anchor="middle" font-size="11.5" fill="#333">sieve_analyze() and the exported sieve_* services run</text>
+  <text x="1360.0" y="1261" text-anchor="middle" font-size="11.5" fill="#333">the same specifications and engines without the interface</text>
+  </g>
+  <path d="M 645 1306 L 645 1336 L 26 1336 L 26 161 L 60 161" fill="none" stroke="#7a7a7a" stroke-width="1.5" stroke-dasharray="6 5" marker-end="url(#arrowgrey)"/>
+  <text x="20" y="760" text-anchor="middle" font-size="11" fill="#666" transform="rotate(-90 20 760)">a saved project reopens through Ingest, in Study</text>
+  </g>
+</svg>

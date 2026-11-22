@@ -1,0 +1,79 @@
+Package: SIEVER
+Title: Scale Item Evaluation and Validation Environment
+Version: 0.9.0
+Date: 2026-11-20
+Authors@R: person("Ken", "Kelley", email = "kkelley@nd.edu",
+                  role = c("aut", "cre"),
+                  comment = c(ORCID = "0000-0002-4756-8360"))
+Description: An interactive environment for developing constructs and instruments,
+    evaluating score interpretations and intended uses, and retaining the
+    evidence and researcher decisions behind them. The 'shiny' application
+    connects item and facet assignments, screening, exploratory and
+    confirmatory factor analysis, reliability with confidence intervals,
+    validity-related analyses, scoring, and internal evaluation. Project
+    files preserve data, transformations, specifications, and decision
+    records. Optional local guidance and review briefs support scientific
+    judgment. Estimation is delegated to 'DMAR', 'lavaan', and 'psych';
+    favorable coefficients or model fit do not by themselves establish
+    validity. Reliability coefficients are reported with confidence
+    intervals following Kelley and Pornprasertmanit (2016)
+    <doi:10.1037/a0040086>. Sample size planning for narrow confidence
+    intervals follows accuracy in parameter estimation, reviewed by
+    Maxwell, Kelley, and Rausch (2008)
+    <doi:10.1146/annurev.psych.59.103006.093735>, with the root mean square
+    error of approximation planned as in Kelley and Lai (2011)
+    <doi:10.1080/00273171.2011.543027>. Latent variable models are fit
+    with 'lavaan', described by Rosseel (2012) <doi:10.18637/jss.v048.i02>.
+Contact: Ken Kelley <kkelley@nd.edu>
+URL: https://github.com/yelleKneK/SIEVER
+BugReports: https://github.com/yelleKneK/SIEVER/issues
+License: MIT + file LICENSE
+Encoding: UTF-8
+Language: en-US
+Depends:
+    R (>= 4.1.0)
+Imports:
+    bslib (>= 0.8.0),
+    callr,
+    DMAR (>= 1.1.0),
+    DT (>= 0.27),
+    ggplot2 (>= 3.4.0),
+    golem,
+    graphics,
+    grDevices,
+    htmltools,
+    lavaan (>= 0.7-3),
+    methods,
+    psych,
+    shiny (>= 1.9.0),
+    stats,
+    tools,
+    utils,
+    withr
+Suggests:
+    generics,
+    boot,
+    chromote,
+    digest,
+    haven,
+    httr2 (>= 1.1.0),
+    igraph,
+    knitr,
+    jsonlite,
+    lavaan.mi (>= 0.1-1),
+    mice,
+    pdftools,
+    parallel,
+    pkgload,
+    processx,
+    psychonetrics,
+    qgraph,
+    rmarkdown,
+    shinytest2,
+    svglite,
+    testthat (>= 3.1.8),
+    vctrs
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+Config/roxygen2/version: 8.1.0
+Roxygen: list(markdown = TRUE)

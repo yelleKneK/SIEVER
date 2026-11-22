@@ -1,0 +1,216 @@
+# The site is built with pkgdown::build_site().
+url: https://yelleknek.github.io/SIEVER/
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#0c2340"     # Notre Dame navy
+    secondary: "#d39f10"   # Bright gold
+    border-radius: 0.5rem
+
+home:
+  title: "SIEVER: Scale Item Evaluation and Validation Environment in R"
+  description: >
+    An interactive environment for developing constructs and instruments,
+    evaluating score interpretations and intended uses, and retaining data,
+    specifications, evidence, uncertainty, and researcher decisions. Public R
+    services support the same analyses and replay as the application.
+
+navbar:
+  structure:
+    left:  [intro, articles, reference, news]
+    right: [search, dmar]
+  components:
+    intro:
+      text: Get started
+      href: articles/getting-started.html
+    articles:
+      text: Articles
+      menu:
+      - text: "Getting Started: A Guided SIEVER Session"
+        href: articles/getting-started.html
+      - text: SIEVER User Guide
+        href: articles/user-guide.html
+      - text: Scripted Analyses and a Reproducible Session
+        href: articles/scripted-workflows.html
+      - text: Attaching Item Wording in R (Beyond an SPSS File)
+        href: articles/item-wording.html
+      - text: "Validation: Checking SIEVER's Numbers Against Authoritative Sources"
+        href: articles/validation.html
+      - text: "SIEVER and the Standards for Educational and Psychological Testing (2014)"
+        href: articles/standards-crosswalk.html
+    dmar:
+      text: DMAR
+      href: https://yelleknek.github.io/DMAR/
+      aria-label: The DMAR package site
+
+# Articles are ordered by where they fall in a SIEVER session, not
+# alphabetically: read the guided session first, then the topic guides
+# for the stages that need more than the in-app explanations give.
+articles:
+- title: Start Here
+  navbar: ~
+  contents:
+  - getting-started
+  - user-guide
+- title: Preparing the Item Pool
+  desc: >
+    Getting items, wording, and constructs into the environment before any
+    model is fit.
+  contents:
+  - item-wording
+- title: Working From R
+  desc: >
+    The analyses and a reproducible session run from an R script, with the
+    same services the application uses.
+  contents:
+  - scripted-workflows
+- title: Verifying the Software
+  desc: >
+    SIEVER's numbers checked against lavaan, DMAR, and derivations written
+    out in the open.
+  contents:
+  - validation
+- title: Documenting a Scale Against the Testing Standards
+  desc: >
+    Each SIEVER output mapped to the chapters on validity,
+    reliability/precision and fairness of the Standards for Educational and
+    Psychological Testing (2014), with the evidence SIEVER does not provide.
+  contents:
+  - standards-crosswalk
+
+reference:
+- title: Running the Environment
+  desc: >
+    Launch the application or use the documented analysis, project, and replay
+    services from an R script, and read the confidence levels its intervals
+    take by default.
+  contents:
+  - run_app
+  - sieve_default_conf_level
+- title: Path Diagrams
+  desc: >
+    The diagrams of the CFA and SEM tabs, available from a script. A fitted
+    lavaan model is read once into a specification (nodes, relationships, the
+    matching parameter table, the layout, and a caption); the specification is
+    drawn or written to a file, and its display options can be changed without
+    the fitted model.
+  contents:
+  - sieve_diagram_spec
+  - sieve_diagram_update
+  - sieve_draw_diagram
+  - plot.sieve_diagram
+  - sieve_export_diagram
+  - sieve_diagram_code
+  - print.sieve_diagram
+- title: Preparing a Study
+  desc: >
+    The step before SIEVER: a specification template to fill in for a data
+    file, and the one call that turns a data file and its specification into
+    a project file that opens on the Ingest tab confirmed.
+  contents:
+  - sieve_specification_template
+  - sieve_prepare_study
+  - print.sieve_project
+- title: Screening
+  desc: >
+    The correlation heatmap of the Screening tab, available from a script. The
+    R that SIEVER records for a heatmap download calls this function on the
+    matrix the tab shows, so the figure in the file is the figure on the screen.
+  contents:
+  - sieve_correlation_heatmap
+- title: The Package
+  contents:
+  - SIEVER-package
+
+- title: Analysis and Replay Services
+  contents:
+  - sieve_R2_intervals
+  - sieve_analyze
+  - sieve_anchor_sensitivity
+  - sieve_bollen_stine
+  - sieve_cfa_spec
+  - sieve_composite_score
+  - sieve_construct_norms
+  - sieve_cross_validate
+  - sieve_efa_factor_plot
+  - sieve_efa_fit_by_k
+  - sieve_factor_score_record
+  - sieve_fit_bifactor
+  - sieve_fit_cfa
+  - sieve_fit_compare
+  - sieve_fit_identity
+  - sieve_fit_invariance
+  - sieve_fit_store
+  - sieve_holdout_draw
+  - sieve_holdout_sizes
+  - sieve_indirect_mc
+  - sieve_invariance_interpret
+  - sieve_irt_bivariate_table
+  - sieve_irt_category_probabilities
+  - sieve_irt_empirical_traces
+  - sieve_irt_information_bands
+  - sieve_irt_parameter_evidence
+  - sieve_irt_residual_pairs
+  - sieve_latent_bound
+  - sieve_longitudinal_compare
+  - sieve_longitudinal_contrasts
+  - sieve_longitudinal_spec
+  - sieve_marker_sensitivity
+  - sieve_method_bibliography
+  - sieve_method_references
+  - sieve_methods_draft
+  - sieve_model_composite
+  - sieve_norm_apply
+  - sieve_norm_freeze
+  - sieve_norm_read
+  - sieve_norm_transform_limits
+  - sieve_ordinal_fit_impact
+  - sieve_outcome_scale
+  - sieve_plan_congeneric
+  - sieve_project_analyses
+  - sieve_project_decisions
+  - sieve_project_read
+  - sieve_project_report
+  - sieve_project_write
+  - sieve_reliability_construct
+  - sieve_reliability_spec
+  - sieve_reliability_table
+  - sieve_replay
+  - sieve_replay_bind
+  - sieve_replay_engine_check
+  - sieve_replay_read
+  - sieve_replay_verify
+  - sieve_residual_pairs
+  - sieve_response_screens
+  - sieve_retention_evidence
+  - sieve_run_longitudinal
+  - sieve_run_model
+  - sieve_run_structural
+  - sieve_score_policy
+  - sieve_score_policy_sensitivity
+  - sieve_session_write
+  - print.siever_analysis
+
+- title: Item Review and Additional Headless Workflows
+  contents:
+  - sieve_optimize_items
+  - sieve_order_candidates
+  - sieve_item_coverage
+  - sieve_coverage_change
+  - sieve_item_diagnostics
+  - sieve_item_rest
+  - sieve_facet_item_rest
+  - sieve_retention_cor
+  - sieve_compare_structures
+  - sieve_structures_table
+  - sieve_mi_plan
+  - sieve_mi_model
+  - sieve_modification_indices
+  - sieve_bifactor_bootstrap
+  - sieve_run_method_factor
+  - sieve_validity_estimate
+  - sieve_validity_evidence
+  - sieve_scoring_code
+  - sieve_wording_checks
+  - sieve_reverse_balance

@@ -1,0 +1,687 @@
+---
+title: "Validation: Checking SIEVER's Numbers Against Authoritative Sources"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Validation: Checking SIEVER's Numbers Against Authoritative Sources}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+set.seed(1)
+```
+
+## Why a Measurement Package Owes You Evidence
+
+A package that reports reliability, fit, and validity coefficients is
+asking you to put those numbers in a manuscript. Assurance that the
+numbers are right is worth very little; evidence that they are right,
+which you can re-run on your own machine, is worth a great deal. This
+vignette is that evidence. Nothing in it is transcribed from a previous
+run: every number below is computed when the vignette is built, so if a
+claim were to stop being true the vignette would say so.
+
+The claim to verify comes in two parts. Most estimation and inference
+come from DMAR (every exploratory factor analysis, the EFA page's, the
+Items page's live EFA and the solutions behind VSS and the Optimizer's
+simple structure, and the Dimensionality page's parallel analysis among
+them), the fitting from lavaan (Rosseel, 2012), and the polychoric,
+tetrachoric and mixed correlations from psych; for
+those, SIEVER's job is to route your data to the right routine with the
+right arguments, to gate the analyses that are not yet estimable, and to
+record what it did, so what can go wrong is the routing. The counted
+percentile bootstrap of robust omega for independent rows is DMAR's
+(DMAR 1.1.0), so for it SIEVER's part is the request and its record.
+SIEVER also has procedures of its own (among them the whole-cluster
+counted bootstrap of reliability under a declared cluster design, the
+response screens, the composite and factor score records, and the Monte
+Carlo intervals), whose arithmetic is its own to get right. The checks
+below say which kind each one is: a quantity
+compared with a derivation written out in the open is checked apart from
+the engine, while a quantity compared with the same engine reached
+another way checks the routing, not the estimator.
+
+Three kinds of evidence appear here.
+
+1. **Agreement with authoritative sources.** Each quantity checked below
+   is reproduced from a second implementation (lavaan) or from a
+   derivation written out in the open, item by item. These are checks of
+   those quantities on these data, not of every number SIEVER displays.
+2. **Invariants that must hold for every input.** Some properties follow
+   from how a procedure is built, whatever the data (an interval built
+   around one estimate with one standard error widens with its confidence
+   level; reverse coding applied twice returns the original values).
+   Checks of this kind, called metamorphic tests, catch defects that a
+   single fixed comparison can miss.
+3. **Reproducibility.** A seeded computation must give the same answer
+   twice, and it must leave your random number stream exactly as it found
+   it.
+
+Where two respectable definitions disagree, this vignette shows both
+and explains the disagreement rather than choosing the flattering one.
+Three such cases appear below (Harman's screen, HTMT and AVE) and none is
+an error: they are definitional differences that a user needs to know
+about to report the right thing.
+
+## The Data and the Model
+
+The running example is the Holzinger and Swineford (1939) primary nine
+mental tests (n = 301), shipped in DMAR as `holzinger_swineford`, with the three
+theorized ability factors Visual, Textual, and Speed. SIEVER carries the
+same nine tests as its default bundled example (through an internal
+fixture), but the code below uses `DMAR::holzinger_swineford` directly so that
+everything you copy from this page runs outside the app.
+
+```{r data}
+library(DMAR)
+library(lavaan)
+
+items <- c("t1_visual_perception", "t2_cubes", "t4_lozenges",
+           "t6_paragraph_comprehension", "t7_sentence", "t9_word_meaning",
+           "t10_addition", "t12_counting_groups_of_dots",
+           "t13_straight_and_curved_capitals")
+d <- holzinger_swineford[, items]
+blocks <- list(Visual  = items[1:3],
+               Textual = items[4:6],
+               Speed   = items[7:9])
+
+model <- '
+  Visual  =~ t1_visual_perception + t2_cubes + t4_lozenges
+  Textual =~ t6_paragraph_comprehension + t7_sentence + t9_word_meaning
+  Speed   =~ t10_addition + t12_counting_groups_of_dots + t13_straight_and_curved_capitals
+'
+fit <- cfa(model, data = d, std.lv = TRUE)
+c(n = nobs(fit), items = length(items))
+```
+
+The measurement model fixes the factor variances to one (`std.lv = TRUE`),
+the SIEVER default and the identification the derivations below assume:
+every loading is free and the factors are on a standardized scale, while
+the items keep their own scales (lavaan's Std.lv solution). The completely
+standardized solution (Std.all), which rescales the items as well, is a
+separate output.
+
+## Agreement With Authoritative Sources
+
+### ECVI: DMAR Versus lavaan
+
+The expected cross validation index (Browne & Cudeck, 1989) is a
+discrepancy per observation, so it is on an interpretable metric and takes
+a confidence interval, which is why SIEVER reports it, with its interval,
+beside CFI, RMSEA, and SRMR on the CV and Invariance tab (the calibration
+and validation rows and the invariance ladder). lavaan computes the point
+estimate as a fit
+measure; DMAR computes the same point estimate and adds the noncentral
+chi square interval that lavaan does not provide. The point estimates must
+be identical.
+
+```{r ecvi}
+e_dmar   <- ecvi(fit)
+e_lavaan <- unname(fitMeasures(fit, "ecvi"))
+
+sprintf("DMAR::ecvi()          %.12f", e_dmar$value[e_dmar$term == "ecvi"])
+sprintf("lavaan fitMeasures()  %.12f", e_lavaan)
+sprintf("absolute difference   %.3e",
+        abs(e_dmar$value[e_dmar$term == "ecvi"] - e_lavaan))
+```
+
+The absolute difference is at or below the resolution of double precision
+arithmetic (it prints as exactly zero here), so the agreement runs well
+past the twelve digits shown. What DMAR adds is the interval:
+
+```{r ecvi-interval}
+e_dmar
+```
+
+### Robust Omega: DMAR Versus a Hand Derivation
+
+The Reliability tab's default coefficient is Robust omega (observed
+denominator), the coefficient Kelley and Pornprasertmanit (2016)
+introduced as hierarchical omega: the squared sum of the one-factor
+loadings over the variance of the unit-weighted composite, with that
+variance estimated from the data rather than from the model. Writing
+`lambda` for the loadings of the one-factor model with the factor variance
+fixed to one, `psi` for its residual variances, and `S` for the
+unrestricted covariance matrix of the items on the maximum likelihood
+divisor (n, the divisor the loadings were estimated under):
+
+```
+  robust omega         = sum(lambda)^2 / sum(S)
+  model-implied omega  = sum(lambda)^2 / (sum(lambda)^2 + sum(psi))
+```
+
+The numerator is the same under both; only the denominator differs, and
+the two denominators differ by exactly `sum(S - Sigma_hat)`, the sum of
+every residual covariance of the one-factor fit. For a construct of three
+items the one-factor model is saturated, so the residuals are zero (to the
+optimizer's convergence tolerance) and the two coincide; the nine tests
+forced into one factor, a model that is wrong
+by construction, show the two parting company by exactly that sum. Both
+rows are computed by `DMAR::reliability_omega()` and by hand from the same
+lavaan fit.
+
+```{r robust-omega}
+omega_by_hand <- function(X) {
+  fit1 <- cfa(paste("f =~", paste(names(X), collapse = " + ")),
+              data = X, std.lv = TRUE)
+  est <- lavInspect(fit1, "est")
+  lambda <- est$lambda[, 1]
+  psi <- diag(est$theta)
+  S <- cov(X) * (nrow(X) - 1) / nrow(X)
+  Sigma_hat <- lavInspect(fit1, "implied")$cov
+  c(robust = sum(lambda)^2 / sum(S),
+    model_implied = sum(lambda)^2 / (sum(lambda)^2 + sum(psi)),
+    residual_sum = sum(S - Sigma_hat))
+}
+omega_dmar <- function(X) {
+  value <- function(denominator) {
+    r <- reliability_omega(data = X, denominator = denominator, ci_method = "none")
+    r$value[r$term == "estimate"]
+  }
+  c(robust = value("observed"), model_implied = value("model_implied"))
+}
+
+sets <- list(Textual_three_items = d[, blocks$Textual], nine_tests_one_factor = d)
+do.call(rbind, lapply(names(sets), function(nm) {
+  hand <- omega_by_hand(sets[[nm]])
+  dmar <- omega_dmar(sets[[nm]])
+  data.frame(items = nm,
+             DMAR_robust = dmar[["robust"]], hand_robust = hand[["robust"]],
+             DMAR_model_implied = dmar[["model_implied"]],
+             hand_model_implied = hand[["model_implied"]],
+             max_abs_difference = max(abs(dmar - hand[c("robust", "model_implied")])),
+             residual_sum = hand[["residual_sum"]])
+}))
+```
+
+DMAR and the hand derivation agree to machine precision on both rows, and
+the residual sum is zero to the optimizer's convergence tolerance (about
+1e-8 here) where the model is saturated and far from zero where it is
+wrong. The second row is not a reliability anyone should
+report (nine tests on different metrics are not one composite); it is here
+because it is the case in which the choice of denominator matters, and it
+shows what the choice is: the model-implied form describes the composite
+as the fitted model describes it, and the robust form describes the
+composite users compute. The interval SIEVER attaches to robust omega is a
+percentile bootstrap (BCa for ordered items), run on request with its
+wait stated, which is why the comparison here is of point estimates.
+
+### Bifactor Indices: DMAR Versus a Hand Derivation
+
+No second package is needed here, because the bifactor indices
+(Rodriguez, Reise, & Haviland, 2016) are functions of the standardized
+solution and can be derived in the open. Fit
+the bifactor model (one general factor on all nine tests, three orthogonal
+group factors), then compute the indices twice: once with
+`DMAR::bifactor_indices()` and once from the standardized loadings, using
+the definitions written out below.
+
+Writing `g[i]` for the general loading of item `i`, `s[i]` for its group
+factor loading, and `theta[i] = 1 - g[i]^2 - s[i]^2` for its standardized
+residual variance:
+
+```
+  ECV     = sum(g^2) / (sum(g^2) + sum(s^2))
+  omega   = (G + S) / (G + S + sum(theta))
+  omega_H =  G      / (G + S + sum(theta))
+            where G = sum(g)^2  and  S = sum over group factors of
+            (sum of that factor's s)^2
+  H       = t / (1 + t),  t = sum(g^2 / (1 - g^2))     (Hancock & Mueller, 2001)
+```
+
+The form of `H` matters. Coefficient H is the squared correlation between
+the factor and its optimally weighted composite, and the Hancock and
+Mueller (2001) expression above is what it is; a superficially similar
+expression built from `sum(g^2)` alone is a different quantity, and such
+a variant is exactly what this comparison exists to catch.
+
+```{r bifactor}
+bimodel <- '
+  g       =~ t1_visual_perception + t2_cubes + t4_lozenges +
+             t6_paragraph_comprehension + t7_sentence + t9_word_meaning +
+             t10_addition + t12_counting_groups_of_dots +
+             t13_straight_and_curved_capitals
+  Visual  =~ t1_visual_perception + t2_cubes + t4_lozenges
+  Textual =~ t6_paragraph_comprehension + t7_sentence + t9_word_meaning
+  Speed   =~ t10_addition + t12_counting_groups_of_dots + t13_straight_and_curved_capitals
+'
+bifit <- cfa(bimodel, data = d, std.lv = TRUE, orthogonal = TRUE)
+bi <- bifactor_indices(bifit)
+bi
+```
+
+Now the same four quantities for the general factor, by hand:
+
+```{r bifactor-hand}
+std <- standardizedSolution(bifit)
+lam <- std[std$op == "=~", ]
+
+g <- setNames(lam$est.std[lam$lhs == "g"], lam$rhs[lam$lhs == "g"])[items]
+s <- unlist(lapply(names(blocks), function(b)
+  setNames(lam$est.std[lam$lhs == b], lam$rhs[lam$lhs == b])))[items]
+theta <- 1 - g^2 - s^2
+grp <- rep(names(blocks), lengths(blocks))
+
+G <- sum(g)^2
+S <- sum(tapply(s, grp, function(x) sum(x)^2))
+tt <- sum(g^2 / (1 - g^2))
+
+hand <- c(ECV     = sum(g^2) / (sum(g^2) + sum(s^2)),
+          omega   = (G + S) / (G + S + sum(theta)),
+          omega_H = G / (G + S + sum(theta)),
+          H       = tt / (1 + tt))
+dmar <- unlist(bi[bi$factor == "g", names(hand)])
+
+data.frame(index = names(hand),
+           hand = unname(hand),
+           DMAR = unname(dmar),
+           abs_difference = unname(abs(hand - dmar)))
+```
+
+Every difference is zero to machine precision.
+
+This model is also a useful reminder that agreement is not the same as
+trustworthiness. The nine test bifactor solution is improper on this data
+(a negative residual variance), which lavaan's post-estimation check and
+DMAR both report as warnings above, and DMAR records on the result:
+
+```{r bifactor-improper}
+attr(bi, "improper")
+```
+
+SIEVER surfaces that flag rather than quietly printing the indices, since
+indices from a Heywood solution should not be interpreted. The arithmetic
+check is unaffected, because both routes read the same standardized
+solution; what the flag says is that the solution itself needs
+respecification before the numbers mean anything.
+
+### The Harman Single Factor Screen
+
+The Harman screen is the crudest common method variance diagnostic
+(Podsakoff, MacKenzie, Lee, & Podsakoff, 2003): the share of the total
+item variance that one common factor accounts for. It is a screen, not a
+test, and SIEVER's Validity tab names it Harman's single-factor screen in
+its table row, note, and button, and reports the proportion without a
+cutoff; the note names the .50 convention of Podsakoff et al. (2003) once
+and says that SIEVER applies no cutoff to it. Its
+definition is where implementations part company, and SIEVER's note on
+the Validity tab says which one it reports: as DMAR computes it, one
+common factor is fit by maximum likelihood (`stats::factanal()`) to the
+Pearson correlation matrix of the included items on the pairwise complete
+cases, and the statistic is the sum of the squared standardized loadings
+over the number of items. The other form in circulation divides the
+largest eigenvalue of the correlation matrix by the number of items, which
+is the variance of the first principal component, not of a factor: a
+component absorbs unique as well as common variance, so that form
+overstates the share and is not what SIEVER reports. Both are computed
+below.
+
+```{r harman}
+h <- common_method_single_factor(d)
+R <- cor(d, use = "pairwise.complete.obs")
+one_factor <- stats::factanal(covmat = R, factors = 1L)
+factor_by_hand <- sum(one_factor$loadings[, 1]^2) / ncol(R)
+component_form <- max(eigen(R, only.values = TRUE)$values) / ncol(R)
+
+sprintf("DMAR::common_method_single_factor()        %.12f",
+        h$value[h$term == "variance_explained"])
+sprintf("one-factor ML loadings: sum(L^2) / p     %.12f", factor_by_hand)
+sprintf("absolute difference                      %.3e",
+        abs(h$value[h$term == "variance_explained"] - factor_by_hand))
+sprintf("largest eigenvalue / p (component form)  %.12f", component_form)
+```
+
+DMAR and the one-factor derivation are identical to the printed
+resolution, which is what a one line routing wrapper should deliver, and
+the component form is visibly larger on the same matrix. A reader
+comparing SIEVER's screen with a value from software that reports the
+component form should expect the difference, and a .50 rule can land on
+opposite sides of it.
+
+### HTMT: DMAR Versus a Hand Derivation, and Why the Variants Differ
+
+The heterotrait monotrait ratio (Henseler, Ringle, & Sarstedt, 2015)
+compares the average between construct item correlation to the geometric
+mean of the two constructs' average within construct item correlations.
+DMAR implements this original arithmetic mean form, which is the form
+SIEVER displays (the Validity tab names the routine, DMAR::htmt on each
+construct's items, at the point of display). A
+later variant (HTMT2), proposed for congeneric measures, replaces the
+arithmetic means with geometric means, and some software now reports it
+by default; on the same data it gives different values. Both are computed
+by hand below from the item correlation matrix, so the column that DMAR
+matches settles which definition it implements.
+
+```{r htmt}
+ht <- htmt(d, blocks = blocks)
+
+R <- abs(cor(d))
+htmt_by_hand <- function(a, b, average) {
+  within <- function(ix) {
+    r <- R[ix, ix]
+    average(r[lower.tri(r)])
+  }
+  average(R[blocks[[a]], blocks[[b]]]) /
+    sqrt(within(blocks[[a]]) * within(blocks[[b]]))
+}
+geometric <- function(v) exp(mean(log(v)))
+arithmetic_by_hand <- mapply(htmt_by_hand, ht$construct_1, ht$construct_2,
+                             MoreArgs = list(average = mean))
+geometric_HTMT2 <- mapply(htmt_by_hand, ht$construct_1, ht$construct_2,
+                          MoreArgs = list(average = geometric))
+
+data.frame(
+  pair               = paste(ht$construct_1, ht$construct_2, sep = " / "),
+  DMAR_htmt          = ht$htmt,
+  arithmetic_by_hand = unname(arithmetic_by_hand),
+  abs_difference     = unname(abs(ht$htmt - arithmetic_by_hand)),
+  geometric_HTMT2    = unname(geometric_HTMT2)
+)
+```
+
+DMAR and the arithmetic hand computation agree to machine precision. The
+HTMT2 column is systematically smaller here, which is why reporting which
+variant you used is not a formality: with a .85 or .90 decision rule, the
+two variants can land on opposite sides for the same data. SIEVER names
+the routine (DMAR::htmt) at the point of display; when you report HTMT, say
+that it is the arithmetic mean form of Henseler, Ringle, and Sarstedt
+(2015), not HTMT2, for exactly this reason.
+
+### AVE: Two Definitions, Both Correct
+
+Average variance extracted (Fornell & Larcker, 1981) has more than one
+implementation in circulation. DMAR's `average_variance_extracted()` is
+the mean squared standardized loading, which is the definition SIEVER
+records with the AVE table (the recorded step names it in the session
+script and the Show code panel). Another form in circulation is the sum of
+the items'
+common factor variances over the sum of their observed variances, which
+weights each squared standardized loading by its item's variance, so it
+answers a slightly different question. The two columns below differ by up
+to a few hundredths; that is a difference of definition, not a
+disagreement about arithmetic, and the hand computed columns settle which
+definition DMAR implements.
+
+```{r ave}
+a <- average_variance_extracted(fit)
+
+lam_cfa <- standardizedSolution(fit)
+lam_cfa <- lam_cfa[lam_cfa$op == "=~", ]
+mean_sq <- tapply(lam_cfa$est.std, lam_cfa$lhs, function(x) mean(x^2))
+
+est <- lavInspect(fit, "est")
+common <- diag(est$lambda %*% est$psi %*% t(est$lambda))
+observed <- diag(lavInspect(fit, "sampstat")$cov)
+variance_weighted <- sapply(a$factor, function(f) {
+  ix <- est$lambda[, f] != 0
+  sum(common[ix]) / sum(observed[ix])
+})
+
+data.frame(
+  factor            = a$factor,
+  DMAR_ave          = a$ave,
+  mean_sq_loading   = unname(mean_sq[a$factor]),
+  abs_difference    = unname(abs(a$ave - mean_sq[a$factor])),
+  variance_weighted = unname(variance_weighted)
+)
+```
+
+DMAR matches the mean squared loading exactly. The variance weighted column
+is reported here so that a reader comparing SIEVER's output to a paper that
+used the other definition knows immediately why the second decimal moved,
+and which definition each number is on.
+
+## Invariants That Must Hold for All Inputs
+
+Fixed comparisons check one dataset. The checks in this section state
+properties that must hold for every input, given how each procedure is
+built, which is a stronger kind of evidence: if the property fails on any
+data, something is wrong.
+
+### A Confidence Interval Widens With Its Confidence Level
+
+A confidence interval for omega built around one estimate with one
+standard error, as the delta method interval checked here is, must be
+monotone non-decreasing in width as the confidence level rises. That
+follows from how the interval is built, not from these data (an interval
+recomputed from new random draws at each level need not be nested), and
+a routing defect (a confidence level passed to the wrong argument, an
+interval built at a fixed level regardless of the request) shows up here
+immediately.
+
+```{r ci-monotone}
+levels <- c(0.80, 0.90, 0.95, 0.99)
+ints <- t(vapply(levels, function(cl) {
+  r <- reliability_omega(data = d[, blocks$Textual], ci_method = "mlr_logistic",
+                         denominator = "model_implied", conf_level = cl)
+  c(estimate = r$value[r$term == "estimate"],
+    lower    = r$value[r$term == "ci_lower"],
+    upper    = r$value[r$term == "ci_upper"])
+}, numeric(3)))
+
+out <- data.frame(conf_level = levels, ints,
+                  width = ints[, "upper"] - ints[, "lower"])
+out
+
+c(width_strictly_increasing = all(diff(out$width) > 0),
+  estimate_invariant        = length(unique(out$estimate)) == 1L)
+```
+
+The widths increase strictly at every step, and the point estimate is
+unchanged by the confidence level, as it must be. The interval checked
+here is DMAR's default interval of Omega (model-implied denominator), the
+MLR (sandwich) standard error with its limits formed on the logit scale,
+which SIEVER shows beside its default, Robust omega (observed denominator),
+in the compact table, so every construct of continuous items has an
+interval in view before any bootstrap is run; robust omega's own interval
+is a percentile bootstrap run on request (Kelley & Pornprasertmanit,
+2016). For ordered items every interval DMAR gives is a bootstrap, so
+their model-implied omega is shown as a point estimate.
+
+**Operating characteristics of the default intervals.** DMAR chose the
+logit-scale limits on a Monte Carlo study whose design and decision rule
+were written before it ran (DMAR's source repository,
+`methodology/reliability_limits`, which the CRAN package does not include):
+one-factor models of four and six items and a three-factor model of
+three-item factors, N of 50, 100, 200 and 500, and 5,000 replications in
+each of 40 cells. With normal data and the normal theory ML standard error,
+under complete cases and FIML alike, the logit-scale limits for Omega
+(model-implied denominator) covered between .939 and .956 in every one of
+the 48 factor by sample size cells, where limits on the scale of omega from
+the same standard error covered between .910 and .952, missing mostly below
+the lower limit. With nonnormal data (factors and errors from a
+standardized chi-square on 4 df) fitted by MLR, the logit-scale limits from
+the Huber-White standard error covered between .919 and .951 in 16 factor
+by sample size cells, mostly short of .95 because that standard error is
+too small at these sizes; the shortfall shrank with N (.936 at N = 200 and
+.942 at N = 500 for the six-item factor with loadings .8 to .5). No cell
+used the robust.sem standard error the default takes with complete cases.
+That study did not include SIEVER's default interval, the percentile
+bootstrap of Robust omega (observed denominator).
+
+The
+table states, beside every point estimate, the interval, that its
+bootstrap has not been run yet (Run the bootstrap, below the table), or
+that none is shown (an inadmissible estimate gets no bootstrap).
+
+### The Careless Responding Screens Catch a Constant Responder
+
+The screening tab flags rows, not just items: a respondent who marks the
+same option down the whole page distorts every correlation downstream
+(Meade & Craig, 2012). Injecting exactly such a row into the bundled data
+is a metamorphic check with a known answer, and the screens are SIEVER's
+own exported code, `sieve_response_screens()`, the function behind the
+Screening tab's Observations panel, so the check exercises that code
+rather than a re-derivation of it. The longstring must equal the number of
+items, the within person standard deviation must be exactly zero, and the
+row must be flagged.
+
+```{r careless}
+X <- as.matrix(d)
+X <- rbind(X, rep(5, ncol(X)))          # the injected constant responder
+injected <- nrow(X)
+
+# SIEVER's rule: a run of at least half the items, rounded up and never
+# fewer than two; a missing response breaks the run; the within person SD
+# is flagged at or below 0; the Mahalanobis tail is read at p < .001.
+scr <- SIEVER::sieve_response_screens(as.data.frame(X))
+long_cut <- scr$long_cut
+
+# What the screens measured on the injected row.
+scr$tbl[injected, c("longstring", "irv", "p_mahalanobis", "flags", "flagged_by")]
+
+# Whether each screen fires on it.
+c(longstring_equals_item_count = scr$tbl$longstring[injected] == ncol(X),
+  sd_exactly_zero              = scr$tbl$irv[injected] == 0,
+  flagged_longstring           = scr$tbl$longstring[injected] >= long_cut,
+  flagged_invariant            = scr$tbl$irv[injected] <= scr$irv_tol,
+  flagged_mahalanobis          = scr$tbl$p_mahalanobis[injected] < scr$md_alpha,
+  flagged_by_all_three         = scr$tbl$flags[injected] == 3L)
+```
+
+All three screens fire on the injected row at once. The complement matters
+too: on these continuous ability tests the longstring and invariance
+screens should stay quiet, and they do, so the screens are not simply
+flagging everything.
+
+```{r careless-complement}
+real <- seq_len(nrow(X) - 1L)
+c(real_rows_flagged_longstring = sum(scr$tbl$longstring[real] >= long_cut),
+  real_rows_flagged_invariant  = sum(scr$tbl$irv[real] <= scr$irv_tol))
+```
+
+### Reverse Coding Is an Involution
+
+SIEVER reverse codes an item by reflecting it within its response bounds,
+`(min + max) - x`: the bounds declared for it (in its Response bounds cell
+in the Ingest tab's item grid, or for several items at once above the
+grid, from a file's value labels, or from a specification), or its
+observed minimum and maximum when none are declared. Applying that twice must return the
+original values exactly, not approximately, because a lossy round trip
+would silently corrupt an item every time a user toggled the control off
+and on again.
+
+```{r reverse}
+reflect <- function(x) (min(x, na.rm = TRUE) + max(x, na.rm = TRUE)) - x
+
+original <- d$t7_sentence
+once     <- reflect(original)
+twice    <- reflect(once)
+
+c(changed_by_one_pass = !identical(once, original),
+  identical_after_two = identical(twice, original))
+
+max(abs(twice - original))    # exact zero, not a small number
+```
+
+## Reproducibility: The Seed Contract
+
+SIEVER's seed rule has two halves. A seeded computation must be
+reproducible, and a seeded computation must not touch your random number
+stream. The second half is the one packages usually get wrong: calling
+`set.seed()` inside a function silently reseeds the caller's generator, so
+everything the user does afterward changes. SIEVER sets a supplied seed
+locally and restores the caller's `.Random.seed` on exit: its own
+stochastic code runs under `withr::with_seed()`, and the DMAR routines it
+calls receive the seed and seed locally themselves, which the HTMT
+bootstrap below demonstrates. With no seed supplied, SIEVER draws one from
+your stream (one draw) and records it, so the run can still be replayed.
+(Relatedly, no
+user facing seed input in the app defaults to a constant: they default to
+empty, because a baked-in default makes results look reproducible while
+hiding sampling variability from the user.)
+
+The bootstrap upper bound for HTMT is the natural place to demonstrate
+both halves.
+
+```{r seeds}
+set.seed(1)
+before <- .Random.seed
+
+run_1 <- htmt(d, blocks = blocks, B = 200, seed = 1)
+run_2 <- htmt(d, blocks = blocks, B = 200, seed = 1)
+run_3 <- htmt(d, blocks = blocks, B = 200, seed = 2)
+
+c(same_seed_identical   = identical(run_1$ci_upper, run_2$ci_upper),
+  different_seed_differs = !identical(run_1$ci_upper, run_3$ci_upper),
+  rng_state_restored     = identical(.Random.seed, before))
+```
+
+`identical(.Random.seed, before)` is `TRUE`: byte for byte, the stream is
+where you left it, even though three bootstraps of 200 resamples each ran
+in between. The seeded runs agree exactly, and a different seed gives
+different bounds, which confirms the seed is actually reaching the
+resampler rather than being ignored.
+
+```{r seeds-values}
+run_1
+```
+
+## Re-Running the Evidence Yourself
+
+Everything above is re-runnable in two ways.
+
+* **This vignette.** Its source is `vignettes/validation.Rmd` in the
+  package source. Rebuild it with `devtools::build_vignettes()`, or knit
+  that file directly. Every number is recomputed at build time.
+* **The test suite.** `devtools::test()` runs the same comparisons as
+  tests, so a change that broke any of them would fail the suite rather
+  than wait for someone to read a vignette.
+  `tests/testthat/test-dmar-api-shapes.R` holds the value pinning tests
+  against DMAR and the hand derivations, including the bifactor index
+  schema, the common method variance identities, the ECVI interval, and
+  HTMT seed reproducibility with random number generator restoration.
+
+If you find a quantity SIEVER displays that you cannot reproduce from an
+authoritative source, that is a defect worth reporting, and it is the
+standard this vignette is written to be held to.
+
+## References
+
+Browne, M. W., & Cudeck, R. (1989). Single sample cross-validation indices
+for covariance structures. *Multivariate Behavioral Research, 24*,
+445--455.
+
+Fornell, C., & Larcker, D. F. (1981). Evaluating structural equation
+models with unobservable variables and measurement error. *Journal of
+Marketing Research, 18*(1), 39--50.
+
+Hancock, G. R., & Mueller, R. O. (2001). Rethinking construct reliability
+within latent variable systems. In R. Cudeck, S. du Toit, & D. Sörbom
+(Eds.), *Structural equation modeling: Present and future* (pp. 195--216).
+Scientific Software International.
+
+Henseler, J., Ringle, C. M., & Sarstedt, M. (2015). A new criterion for
+assessing discriminant validity in variance-based structural equation
+modeling. *Journal of the Academy of Marketing Science, 43*(1), 115--135.
+
+Holzinger, K. J., & Swineford, F. (1939). A study in factor analysis: The
+stability of a bi-factor solution. *Supplementary Educational
+Monographs, 48*.
+
+Kelley, K., & Pornprasertmanit, S. (2016). Confidence intervals for
+population reliability coefficients: Evaluation of methods,
+recommendations, and software for composite measures. *Psychological
+Methods, 21*(1), 69--92.
+
+Meade, A. W., & Craig, S. B. (2012). Identifying careless responses in
+survey data. *Psychological Methods, 17*, 437--455.
+
+Podsakoff, P. M., MacKenzie, S. B., Lee, J.-Y., & Podsakoff, N. P. (2003).
+Common method biases in behavioral research: A critical review of the
+literature and recommended remedies. *Journal of Applied Psychology,
+88*(5), 879--903.
+
+Rodriguez, A., Reise, S. P., & Haviland, M. G. (2016). Evaluating bifactor
+models: Calculating and interpreting statistical indices. *Psychological
+Methods, 21*(2), 137--150.
+
+Rosseel, Y. (2012). lavaan: An R package for structural equation modeling.
+*Journal of Statistical Software, 48*(2), 1--36.
+
+## Session Information
+
+```{r session-info}
+sessionInfo()
+```

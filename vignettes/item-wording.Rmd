@@ -1,0 +1,199 @@
+---
+title: "Attaching Item Wording in R (Beyond an SPSS File)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Attaching Item Wording in R (Beyond an SPSS File)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+`%||%` <- function(x, y) if (is.null(x)) y else x
+```
+
+## Why Wording Matters
+
+SIEVER shows each item's **wording** (the actual question text) in the
+Ingest grid (its Question column), the Items grid (its Wording column) and
+the item detail pane, runs its deterministic item writing checks on it (the
+Content Validity tab's Item Writing Checks), and can
+gather a construct's wordings for review on the Items page (Prepare an
+Expert Review Brief: read them as a written description, or copy the
+structured brief into a large language model of your own choosing).
+Seeing the wording while you work makes it far easier to group items into
+the right constructs and to spot an item that does not belong.
+
+When you load an SPSS `.sav` file, SIEVER reads the wording from each variable's
+**variable label** automatically. This vignette shows the other ways to attach
+wording when your data start life in R.
+
+The single fact to remember: **SIEVER reads an item's wording from the column's
+`"label"` attribute** (the same place `haven` puts an SPSS variable label). So
+any route that sets `attr(column, "label")` will surface the wording in the app.
+
+## 1. Build an Example Data Set and Attach Wordings in Base R
+
+Here we simulate a tiny three-item data frame and attach each item's wording
+with `attr()`.
+
+```{r build}
+set.seed(1)
+n <- 50
+dat <- data.frame(
+  talk  = sample(1:5, n, replace = TRUE),
+  party = sample(1:5, n, replace = TRUE),
+  quiet = sample(1:5, n, replace = TRUE)
+)
+
+# Attach the actual item wording to each column's "label" attribute.
+attr(dat$talk,  "label") <- "I start conversations."
+attr(dat$party, "label") <- "I feel at ease around people at parties."
+attr(dat$quiet, "label") <- "I keep in the background."   # reverse keyed
+
+# Read them back:
+vapply(dat, function(x) attr(x, "label") %||% NA_character_, character(1))
+```
+
+A column that has a `"label"` attribute behaves like a normal numeric column for
+analysis, but SIEVER will display the label as the item's wording.
+
+## 2. Attach Wordings With `labelled` / `haven`
+
+If you prefer a tidyverse-style workflow, `labelled::var_label()` sets the
+same attribute (so does `haven::labelled(x, label = "...")`, one column at
+a time):
+
+```{r labelled, eval = FALSE}
+library(labelled)
+var_label(dat) <- list(
+  talk  = "I start conversations.",
+  party = "I feel at ease around people at parties.",
+  quiet = "I keep in the background."
+)
+```
+
+## 3. Write a Labeled `.sav` So It Round-Trips Into the App
+
+To load the wordings through SIEVER's normal `.sav` path, write the labeled data
+with `haven`; the variable labels become the wordings when SIEVER reads the file.
+
+```{r sav, eval = FALSE}
+haven::write_sav(dat, "extraversion_items.sav")
+# Then in the app: on Ingest, choose Data file alone in step 1, choose
+# extraversion_items.sav, and press Load (step 2).
+```
+
+## 4. Supply Wording Through the Specification File
+
+SIEVER records a study's *specification* in a small `.csv` with one row per
+column of the data: its role, Item Name (`label`), **wording**, measurement
+`type`, construct, facet, inclusion status, reverse keying and response
+bounds. `sieve_specification_template()` writes the template with
+everything SIEVER can propose filled in (here it reads the labels attached
+above into both `label` and `wording`), and you edit the rest, in R or in a
+spreadsheet. Its help page describes every column and the vocabulary each
+one takes.
+
+```{r spec}
+spec <- SIEVER::sieve_specification_template(dat)
+spec$type      <- "ordered"            # five point rating items
+spec$construct <- "Extraversion"
+spec$label     <- c("Talkative", "At ease at parties", "Stays in background")
+spec$wording   <- c("I start conversations.",
+                    "I feel at ease around people at parties.",
+                    "I keep in the background.")
+spec$reverse[spec$variable == "quiet"] <- "TRUE"
+spec$rev_lo <- "1"                     # the response bounds a reversal reflects within
+spec$rev_hi <- "5"
+spec_file <- tempfile("extraversion_spec_", fileext = ".csv")
+write.csv(spec, spec_file, row.names = FALSE)
+spec[, c("variable", "label", "wording", "type", "construct", "reverse", "rev_lo", "rev_hi")]
+```
+
+The template proposes `continuous` for these items because each has five
+distinct values (the detection rule the Ingest tab states: two distinct
+values binary, three or four ordered, five or more continuous, following
+Rhemtulla, Brosseau-Liard and Savalei, 2012); a five point rating scale is
+ordered, so the type is corrected here. Note that the five-option rule is
+on by default (the checkbox in step 1 of the Ingest tab, and
+`continuous_from = 5` in `sieve_prepare_study()`) and reads an item typed
+ordered with five or more response options as continuous, on the same
+finding; to keep the categorical treatment, pass `continuous_from = NULL`
+below (the types are then recorded as your own choice and kept when the
+project is opened), and in the app turn the checkbox off before loading or
+applying the file, or set Type to ordered in the grid afterward. Two routes
+take the file into the app. In step 1 choose Data file with its
+specification (two files, chosen together), choose the data file and the
+specification in the file input, and press Load (step 2): the
+specification sets the roles, Item Names, wordings, types, constructs,
+facets, inclusion and keying, and because it types every item the study is
+confirmed from it; or, with the data already loaded, open **Apply a
+specification to the loaded data** in the Ingest sidebar and choose the
+file under Specification file. The specification is matched by variable
+name, and one with a problem (a variable not in the data, a type outside
+the vocabulary) is refused as a whole and changes nothing. Without the app,
+`sieve_prepare_study()` applies the same file through the same checks and
+writes a project file, which opens on Ingest with Open project (shows what
+the file holds first) or dropped into the data file input under
+SIEVER-ready file, already confirmed:
+
+```{r prepare}
+study <- SIEVER::sieve_prepare_study(dat, spec,
+                                     file = tempfile("extraversion_", fileext = ".siever.rds"),
+                                     name = "Extraversion items",
+                                     continuous_from = NULL)
+```
+
+Here the editable **Item Name** (`label`) is short, while the **Wording** is the
+full text; renaming the Item Name in the app never loses the wording, because
+the two are stored separately. After you have changed anything in the
+grid, the Reproducible Code page's Download specification (.csv) writes
+the current specification back out, so the file beside the data stays the
+record of the study.
+
+## 5. Confirm the Wording Reached the Ledger
+
+Internally, SIEVER keeps a *ledger* with one row per item and a preserved
+`wording` column. When you load data with labels attached, or apply a specification
+with a `wording` column, that column is populated for you. The project
+written above holds that ledger:
+
+```{r ledger}
+study$meta[, c("item", "label", "wording", "construct", "type", "reverse")]
+```
+
+The wording travels with each item through the whole pipeline: the
+Content Validity tab's deterministic item writing checks read it
+(`sieve_wording_checks()` is the same check from a script), the item
+detail pane shows it, and the Items page's Prepare an Expert Review Brief
+gathers it, per construct or for every construct, as a written description
+or a structured brief.
+
+## Summary
+
+- SIEVER reads item wording from each column's `"label"` attribute.
+- Set it in base R with `attr(col, "label") <- "..."`, or with
+  `labelled::var_label()` / `haven::labelled()`.
+- Write a labeled `.sav` to use the normal load path, or fill the
+  `wording` column of the specification file that
+  `sieve_specification_template()` writes and apply it on Ingest (or
+  through `sieve_prepare_study()`).
+- The wording is shown throughout the app, checked on the Content Validity
+  tab, and gathered on the Items page, per construct or
+  for the whole instrument, for a written description or an expert review
+  brief.
+
+## References
+
+Rhemtulla, M., Brosseau-Liard, P. É., & Savalei, V. (2012). When can
+categorical variables be treated as continuous? A comparison of robust
+continuous and categorical SEM estimation methods under suboptimal
+conditions. *Psychological Methods, 17*(3), 354--373.
+https://doi.org/10.1037/a0029315
+
+## Session Information
+
+```{r session-info}
+sessionInfo()
+```

@@ -1,0 +1,19 @@
+year <- sub("-.*", "", meta$Date)
+url <- trimws(strsplit(meta$URL, ",")[[1L]])
+url <- url[grepl("^https://github[.]com/", url)][1L]
+
+bibentry(
+  bibtype  = "Manual",
+  title    = "{SIEVER}: Scale Item Evaluation and Validation Environment in {R}",
+  author   = person("Ken", "Kelley",
+                    comment = c(ORCID = "0000-0002-4756-8360")),
+  year     = year,
+  note     = sprintf("R package version %s", meta$Version),
+  url      = url,
+  header   = "To cite SIEVER in publications, please use:",
+  textVersion = sprintf(
+    paste("Kelley, K. (%s). SIEVER: Scale Item Evaluation and Validation",
+          "Environment in R. R package version %s. %s"),
+    year, meta$Version, url
+  )
+)
